@@ -1,0 +1,17 @@
+# Archivos compilados de Java
+*.class
+
+# Carpetas de Maven
+target/
+
+# Archivos específicos de NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Otros
+*.log
+.DS_Store
