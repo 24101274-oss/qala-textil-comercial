@@ -1,4 +1,4 @@
-package BEAN;
+package UTIL;
 
 import javax.swing.text.*;
 

@@ -1,9 +1,9 @@
 package UI;
 
-import BEAN.MaxLengthFilter;
-import BEAN.PhoneFilter;
-import BEAN.FixedDigitsFilter;
-import BEAN.PassportFilter;
+import UTIL.MaxLengthFilter;
+import UTIL.PhoneFilter;
+import UTIL.FixedDigitsFilter;
+import UTIL.PassportFilter;
 import DAO.GenericDAO;
 import UTIL.DocumentFlags;
 import java.awt.Color;

@@ -1,7 +1,7 @@
 package UI;
 
-import BEAN.MaxLengthFilter;
-import BEAN.PriceFilter;
+import UTIL.MaxLengthFilter;
+import UTIL.PriceFilter;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialLighterIJTheme;
 import java.awt.Color;
 import java.awt.Font;
@@ -1173,14 +1173,14 @@ public class registrarEntradaF extends javax.swing.JFrame {
     }
 
     try {
-        // Obtenemos los datos visuales
+
         int usuarioID = user.getUsuarioID();
         String nombreProveedor = cmbProvE.getSelectedItem().toString();
         String numeroFactura = txtNfactura.getText().trim();
         BigDecimal totalCompra = new BigDecimal(jTextField12.getText().trim());
         String observaciones = txtObs.getText().trim();
 
-        // Delegamos todo el trabajo a nuestro nuevo Servicio
+
         SERVICE.EntradaService servicio = new SERVICE.EntradaService();
         servicio.registrarEntradaCompleta(usuarioID, nombreProveedor, numeroFactura, totalCompra, observaciones, detalleEntrada);
 

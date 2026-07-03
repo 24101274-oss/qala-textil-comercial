@@ -1,4 +1,4 @@
-package BEAN;
+package UTIL;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -6,17 +6,10 @@ import javax.swing.text.DocumentFilter;
 import javax.swing.text.AbstractDocument;
 import UTIL.DocumentFlags;
 
-public class FixedDigitsFilter extends DocumentFilter {
+public class PriceFilter extends DocumentFilter {
 
-    private final int fixedLength;
-
-    public FixedDigitsFilter(int fixedLength) {
-        this.fixedLength = fixedLength;
-    }
-
-    private boolean valido(String text) {
-        return text.matches("[0-9]*");
-    }
+    private static final int MAX_INTEGER_DIGITS = 8;
+    private static final int MAX_DECIMAL_DIGITS = 2;
 
     private boolean isProgrammaticChange(FilterBypass fb) {
         if (fb.getDocument() instanceof AbstractDocument doc) {
@@ -26,8 +19,28 @@ public class FixedDigitsFilter extends DocumentFilter {
         return false;
     }
 
-    private boolean longitudValida(String contenido) {
-        return contenido.length() <= fixedLength;
+    private boolean valido(String text) {
+        return text.matches("[0-9.]*");
+    }
+
+    private boolean formatoValido(String contenido) {
+        if (contenido.isEmpty()) return true;
+
+        if (contenido.chars().filter(c -> c == '.').count() > 1) {
+            return false;
+        }
+
+        String[] partes = contenido.split("\\.", -1);
+
+        if (partes[0].length() > MAX_INTEGER_DIGITS) {
+            return false;
+        }
+
+        if (partes.length == 2 && partes[1].length() > MAX_DECIMAL_DIGITS) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -45,7 +58,7 @@ public class FixedDigitsFilter extends DocumentFilter {
                     .insert(offset, text)
                     .toString();
 
-            if (!longitudValida(nuevo)) return;
+            if (!formatoValido(nuevo)) return;
         }
 
         super.insertString(fb, offset, text, attr);
@@ -66,7 +79,7 @@ public class FixedDigitsFilter extends DocumentFilter {
                     .replace(offset, offset + length, text)
                     .toString();
 
-            if (!longitudValida(nuevo)) return;
+            if (!formatoValido(nuevo)) return;
         }
 
         super.replace(fb, offset, length, text, attrs);

@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package UI;
-import BEAN.MaxLengthFilter;
+import UTIL.MaxLengthFilter;
 import BEAN.Usuario;
 import DAO.GenericDAO;
 import com.formdev.flatlaf.FlatLightLaf;

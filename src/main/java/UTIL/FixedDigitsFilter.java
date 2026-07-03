@@ -1,4 +1,4 @@
-package BEAN;
+package UTIL;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -6,10 +6,17 @@ import javax.swing.text.DocumentFilter;
 import javax.swing.text.AbstractDocument;
 import UTIL.DocumentFlags;
 
-public class PriceFilter extends DocumentFilter {
+public class FixedDigitsFilter extends DocumentFilter {
 
-    private static final int MAX_INTEGER_DIGITS = 8;
-    private static final int MAX_DECIMAL_DIGITS = 2;
+    private final int fixedLength;
+
+    public FixedDigitsFilter(int fixedLength) {
+        this.fixedLength = fixedLength;
+    }
+
+    private boolean valido(String text) {
+        return text.matches("[0-9]*");
+    }
 
     private boolean isProgrammaticChange(FilterBypass fb) {
         if (fb.getDocument() instanceof AbstractDocument doc) {
@@ -19,28 +26,8 @@ public class PriceFilter extends DocumentFilter {
         return false;
     }
 
-    private boolean valido(String text) {
-        return text.matches("[0-9.]*");
-    }
-
-    private boolean formatoValido(String contenido) {
-        if (contenido.isEmpty()) return true;
-
-        if (contenido.chars().filter(c -> c == '.').count() > 1) {
-            return false;
-        }
-
-        String[] partes = contenido.split("\\.", -1);
-
-        if (partes[0].length() > MAX_INTEGER_DIGITS) {
-            return false;
-        }
-
-        if (partes.length == 2 && partes[1].length() > MAX_DECIMAL_DIGITS) {
-            return false;
-        }
-
-        return true;
+    private boolean longitudValida(String contenido) {
+        return contenido.length() <= fixedLength;
     }
 
     @Override
@@ -58,7 +45,7 @@ public class PriceFilter extends DocumentFilter {
                     .insert(offset, text)
                     .toString();
 
-            if (!formatoValido(nuevo)) return;
+            if (!longitudValida(nuevo)) return;
         }
 
         super.insertString(fb, offset, text, attr);
@@ -79,7 +66,7 @@ public class PriceFilter extends DocumentFilter {
                     .replace(offset, offset + length, text)
                     .toString();
 
-            if (!formatoValido(nuevo)) return;
+            if (!longitudValida(nuevo)) return;
         }
 
         super.replace(fb, offset, length, text, attrs);

@@ -4,8 +4,8 @@
  */
 
 package UI;
-import BEAN.MaxLengthFilter;
-import BEAN.PriceFilter;
+import UTIL.MaxLengthFilter;
+import UTIL.PriceFilter;
 import DAO.GenericDAO;
 import UTIL.DocumentFlags;
 import com.formdev.flatlaf.FlatLightLaf;

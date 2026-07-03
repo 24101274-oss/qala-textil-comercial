@@ -1,6 +1,6 @@
 package UI;
 
-import BEAN.MaxLengthFilter;
+import UTIL.MaxLengthFilter;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Image;

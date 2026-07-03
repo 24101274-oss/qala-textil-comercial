@@ -1,6 +1,6 @@
 package UI;
-import BEAN.MaxLengthFilter;
-import BEAN.PriceFilter;
+import UTIL.MaxLengthFilter;
+import UTIL.PriceFilter;
 import BEAN.Usuario;
 import DAO.GenericDAO;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialLighterIJTheme;
