@@ -1180,212 +1180,40 @@ public class registrarSalidaF extends javax.swing.JFrame {
     }//GEN-LAST:event_btnEliminarMouseClicked
 
     private void btnGuardarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnGuardarMouseClicked
-        dbBean DB = new dbBean();
-        Connection conn = null;
+        // 1. Validaciones visuales rápidas
+    if (txtfacSalida.getText().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "No ha ingresado el número de factura", "Validación", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    if (detalleSalida == null || detalleSalida.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "No hay materiales en el detalle", "Validación", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        try {
-            if (txtfacSalida.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                    "No ha ingresado el número de factura",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
+    try {
+        // 2. Extraemos los valores de la ventana
+        int usuarioID = user.getUsuarioID(); 
+        String numeroFactura = txtfacSalida.getText().trim();
+        String tipoSalida = cmbtipSalida.getSelectedItem().toString();
+        String nombreCliente = txtdestSalida.getText().trim();
+        BigDecimal totalVenta = new BigDecimal(txtTotal.getText().trim());
+        String observaciones = txtObs.getText().trim();
 
-            if (detalleSalida == null || detalleSalida.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                    "No hay materiales en el detalle",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
+        // 3. Enviamos todo a la Fachada (Service)
+        SERVICE.SalidaService servicio = new SERVICE.SalidaService();
+        servicio.registrarSalidaCompleta(usuarioID, numeroFactura, tipoSalida, nombreCliente, totalVenta, observaciones, detalleSalida);
 
-            conn = DB.getConnection();
-            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            conn.setAutoCommit(false);
+        // 4. Si el servicio no lanzó error, mostramos éxito
+        JOptionPane.showMessageDialog(this, "Salida registrada correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 
-            Map<String, Integer> materialIds = new java.util.HashMap<>();
+        detalleSalida.clear();
+        DAO.GenericDAO.llenarJTable(tablaEntrada, detalleSalida);
+        this.dispose();
 
-            for (Map<String, Object> fila : detalleSalida) {
-
-                String codigoBarra = fila.get("CodigoBarra").toString();
-                BigDecimal cantidad = new BigDecimal(fila.get("Cantidad").toString());
-
-                try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT MaterialID, StockActual " +
-                    "FROM Material WITH (UPDLOCK, HOLDLOCK) " +
-                    "WHERE CodigoBarra = ?"
-                )) {
-                    ps.setString(1, codigoBarra);
-
-                    try (ResultSet rs = ps.executeQuery()) {
-
-                        if (!rs.next()) {
-                            conn.rollback();
-                            JOptionPane.showMessageDialog(this,
-                                "No existe material con código de barra: " + codigoBarra,
-                                "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-
-                        int materialID = rs.getInt("MaterialID");
-                        BigDecimal stockActual = rs.getBigDecimal("StockActual");
-
-                        if (cantidad.compareTo(stockActual) > 0) {
-                            conn.rollback();
-                            JOptionPane.showMessageDialog(this,
-                                "Stock insuficiente para el material: " + codigoBarra +
-                                "\nStock disponible: " + stockActual +
-                                "\nCantidad solicitada: " + cantidad,
-                                "Stock insuficiente",
-                                JOptionPane.WARNING_MESSAGE);
-                            return;
-                        }
-
-                        materialIds.put(codigoBarra, materialID);
-                    }
-                }
-            }
-
-            String tipoSalida = cmbtipSalida.getSelectedItem().toString();
-
-            java.util.List<Map<String, Object>> tipSal =
-                GenericDAO.select(conn, "TipoSalida", "Descripcion = ?", tipoSalida);
-
-            if (tipSal.isEmpty()) {
-                conn.rollback();
-                JOptionPane.showMessageDialog(this,
-                    "Tipo de salida no válido",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            int TipoSalidaID =
-                Integer.parseInt(tipSal.get(0).get("TipoSalidaID").toString());
-
-            String nombreCliente = txtdestSalida.getText();
-
-            java.util.List<Map<String, Object>> cli =
-                GenericDAO.select(conn, "Cliente", "Nombre = ?", nombreCliente);
-
-            if (cli.isEmpty()) {
-                conn.rollback();
-                JOptionPane.showMessageDialog(this,
-                    "Cliente no válido",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            int ClienteID =
-                Integer.parseInt(cli.get(0).get("ClienteID").toString());
-
-            int usuarioID = user.getUsuarioID();
-            String numeroFactura = txtfacSalida.getText().trim();
-
-            java.util.List<Map<String, Object>> facturaEntrada =
-                GenericDAO.select(conn, "Entrada", "NumeroFactura = ?", numeroFactura);
-
-            java.util.List<Map<String, Object>> facturaSalida =
-                GenericDAO.select(conn, "Salida", "NumeroFactura = ?", numeroFactura);
-
-            if (!facturaEntrada.isEmpty() || !facturaSalida.isEmpty()) {
-                conn.rollback();
-                JOptionPane.showMessageDialog(this,
-                    "El número de factura ya existe en el sistema",
-                    "Factura duplicada",
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            BigDecimal totalVenta =
-                new BigDecimal(txtTotal.getText().trim());
-
-            Timestamp fechaSalida =
-                new Timestamp(System.currentTimeMillis());
-
-            LinkedHashMap<String, Object> SalidaData = new LinkedHashMap<>();
-            SalidaData.put("UsuarioID", usuarioID);
-            SalidaData.put("TipoSalidaID", TipoSalidaID);
-            SalidaData.put("ClienteID", ClienteID);
-            SalidaData.put("NumeroFactura", numeroFactura);
-            SalidaData.put("FechaSalida", fechaSalida);
-            SalidaData.put("TotalVenta", totalVenta);
-            SalidaData.put("Observaciones", txtObs.getText().trim());
-
-            int salidaID =
-                GenericDAO.insertAndReturnID(conn, "Salida", SalidaData);
-
-            if (salidaID <= 0) {
-                conn.rollback();
-                JOptionPane.showMessageDialog(this,
-                    "No se pudo registrar la salida",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            for (Map<String, Object> fila : detalleSalida) {
-
-                String codigoBarra = fila.get("CodigoBarra").toString();
-                BigDecimal cantidad =
-                    new BigDecimal(fila.get("Cantidad").toString());
-
-                int materialID = materialIds.get(codigoBarra);
-
-                LinkedHashMap<String, Object> detalleData = new LinkedHashMap<>();
-                detalleData.put("SalidaID", salidaID);
-                detalleData.put("MaterialID", materialID);
-                detalleData.put("Cantidad", cantidad);
-                detalleData.put("PrecioVenta", fila.get("PrecioUnitario"));
-
-                GenericDAO.insert(conn, "DetalleSalida", detalleData);
-
-                try (PreparedStatement psUpd = conn.prepareStatement(
-                    "UPDATE Material SET StockActual = StockActual - ? WHERE MaterialID = ?"
-                )) {
-                    psUpd.setBigDecimal(1, cantidad);
-                    psUpd.setInt(2, materialID);
-
-                    int filas = psUpd.executeUpdate();
-                    if (filas != 1) {
-                        conn.rollback();
-                        throw new SQLException("Error al actualizar stock");
-                    }
-                }
-            }
-
-            conn.commit();
-
-            JOptionPane.showMessageDialog(this,
-                "Salida registrada correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-
-            detalleSalida.clear();
-            GenericDAO.llenarJTable(tablaEntrada, detalleSalida);
-            this.dispose();
-
-        } catch (Exception e) {
-            try {
-                if (conn != null) conn.rollback();
-            } catch (Exception ignored) {}
-
-            JOptionPane.showMessageDialog(this,
-                "Error al registrar la salida:\n" + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-
-        } finally {
-            try {
-                if (conn != null) {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            } catch (Exception ignored) {}
-        }
+    } catch (Exception e) {
+        // Atrapamos cualquier error de base de datos o stock y lo mostramos
+        JOptionPane.showMessageDialog(this, e.getMessage(), "Error o Validación", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btnGuardarMouseClicked
 
     /**
