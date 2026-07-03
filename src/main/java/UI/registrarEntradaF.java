@@ -1040,69 +1040,50 @@ public class registrarEntradaF extends javax.swing.JFrame {
 
     private void btntxtAgMatEntradaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btntxtAgMatEntradaMouseClicked
         String codigoIngresado = txtCodBarra.getText().trim();
-        String cantStr = txtCant.getText().trim();
+    String cantStr = txtCant.getText().trim();
 
-        if (codigoIngresado.isEmpty() || cantStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe ingresar código de barra y cantidad",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    // 1. Validaciones visuales y de formato
+    if (codigoIngresado.isEmpty() || cantStr.isEmpty()) {
+        javax.swing.JOptionPane.showMessageDialog(this,
+            "Debe ingresar código de barra y cantidad",
+            "Validación",
+            javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        double cantidad;
+    double cantidad;
+    try {
+        cantidad = Double.parseDouble(cantStr);
+        if (cantidad <= 0) throw new NumberFormatException();
+    } catch (NumberFormatException e) {
+        javax.swing.JOptionPane.showMessageDialog(this,
+            "Cantidad inválida",
+            "Validación",
+            javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        try {
-            cantidad = Double.parseDouble(cantStr);
-            if (cantidad <= 0) throw new NumberFormatException();
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this,
-                "Cantidad inválida",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    try {
+        // 2. Pedimos al servicio que busque el material en la BD
+        SERVICE.MaterialService servicio = new SERVICE.MaterialService();
+        Map<String, Object> material = servicio.buscarMaterialPorCodigoBarra(codigoIngresado);
 
-        java.util.List<Map<String, Object>> resultado =
-            GenericDAO.select(
-                "Material",
-                "CodigoBarra = ?",
-                codigoIngresado
-            );
-
-        if (resultado.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "No existe material con ese código de barra",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        Map<String, Object> material = resultado.get(0);
-
+        // 3. Extraemos los datos devueltos por el servicio
         String codigoBarra = material.get("CodigoBarra").toString();
         String nombre = material.get("Nombre").toString();
         String unidad = material.get("UnidadMedida").toString();
-
-        double costoUnitario =
-            Double.parseDouble(material.get("Precio").toString());
+        double costoUnitario = Double.parseDouble(material.get("Precio").toString());
 
         boolean encontrado = false;
 
+        // 4. Lógica de la memoria temporal (Tabla de la UI)
         for (Map<String, Object> filaExistente : detalleEntrada) {
-
             if (codigoBarra.equals(filaExistente.get("CodigoBarra").toString())) {
-
-                double cantidadActual =
-                    Double.parseDouble(filaExistente.get("Cantidad").toString());
-
+                double cantidadActual = Double.parseDouble(filaExistente.get("Cantidad").toString());
                 double nuevaCantidad = cantidadActual + cantidad;
 
                 filaExistente.put("Cantidad", nuevaCantidad);
-                filaExistente.put(
-                    "SubTotal",
-                    nuevaCantidad * costoUnitario
-                );
+                filaExistente.put("SubTotal", nuevaCantidad * costoUnitario);
 
                 encontrado = true;
                 break;
@@ -1110,10 +1091,9 @@ public class registrarEntradaF extends javax.swing.JFrame {
         }
 
         if (!encontrado) {
-
             double total = costoUnitario * cantidad;
 
-            Map<String, Object> fila = new LinkedHashMap<>();
+            Map<String, Object> fila = new java.util.LinkedHashMap<>();
             fila.put("CodigoBarra", codigoBarra);
             fila.put("Nombre", nombre);
             fila.put("Unidad", unidad);
@@ -1124,8 +1104,8 @@ public class registrarEntradaF extends javax.swing.JFrame {
             detalleEntrada.add(fila);
         }
 
-        GenericDAO.llenarJTable(tablaEntrada, detalleEntrada);
-
+        // 5. Actualizamos la interfaz gráfica
+        DAO.GenericDAO.llenarJTable(tablaEntrada, detalleEntrada);
         calcularTotalGeneral();
 
         txtCodBarra.setText("");
@@ -1133,6 +1113,14 @@ public class registrarEntradaF extends javax.swing.JFrame {
         txtUnd.setText("");
         txtCostUni.setText("");
         txtCodBarra.requestFocus();
+
+    } catch (Exception e) {
+        // Atrapamos el error si el material no existe
+        javax.swing.JOptionPane.showMessageDialog(this,
+            e.getMessage(),
+            "Validación",
+            javax.swing.JOptionPane.WARNING_MESSAGE);
+    }
     }//GEN-LAST:event_btntxtAgMatEntradaMouseClicked
 
     private void btntxtEliminarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btntxtEliminarMouseClicked
@@ -1179,158 +1167,32 @@ public class registrarEntradaF extends javax.swing.JFrame {
     }//GEN-LAST:event_btntxtCancelarMouseClicked
 
     private void btntxtGuardarEntradaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btntxtGuardarEntradaMouseClicked
-        if (txtNfactura.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "No ha ingresado el número de factura",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        if (detalleEntrada == null || detalleEntrada.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "No hay materiales en el detalle",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        if (txtNfactura.getText().isEmpty() || detalleEntrada == null || detalleEntrada.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Datos incompletos o sin detalle de materiales.", "Validación", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        String nombreProveedor = cmbProvE.getSelectedItem().toString();
-
-        List<Map<String, Object>> prov =
-            GenericDAO.select(
-                "Proveedor",
-                "Nombre = ?",
-                nombreProveedor
-            );
-
-        if (prov.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Proveedor no válido",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int proveedorID = Integer.parseInt(
-            prov.get(0).get("ProveedorID").toString()
-        );
-
+    try {
+        // Obtenemos los datos visuales
         int usuarioID = user.getUsuarioID();
+        String nombreProveedor = cmbProvE.getSelectedItem().toString();
         String numeroFactura = txtNfactura.getText().trim();
+        BigDecimal totalCompra = new BigDecimal(jTextField12.getText().trim());
+        String observaciones = txtObs.getText().trim();
 
-        if (numeroFactura.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "El número de factura es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        // Delegamos todo el trabajo a nuestro nuevo Servicio
+        SERVICE.EntradaService servicio = new SERVICE.EntradaService();
+        servicio.registrarEntradaCompleta(usuarioID, nombreProveedor, numeroFactura, totalCompra, observaciones, detalleEntrada);
 
-        List<Map<String, Object>> facturaEntrada =
-            GenericDAO.select(
-                "Entrada",
-                "NumeroFactura = ?",
-                numeroFactura
-            );
-
-        List<Map<String, Object>> facturaSalida =
-            GenericDAO.select(
-                "Salida",
-                "NumeroFactura = ?",
-                numeroFactura
-            );
-
-        if (!facturaEntrada.isEmpty() || !facturaSalida.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "El número de factura ya existe en el sistema",
-                "Factura duplicada",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        BigDecimal totalCompra =
-            new BigDecimal(jTextField12.getText().trim());
-
-        Timestamp fechaEntrada =
-            new Timestamp(System.currentTimeMillis());
-
-        LinkedHashMap<String, Object> entradaData = new LinkedHashMap<>();
-        entradaData.put("ProveedorID", proveedorID);
-        entradaData.put("UsuarioID", usuarioID);
-        entradaData.put("NumeroFactura", numeroFactura);
-        entradaData.put("FechaEntrada", fechaEntrada);
-        entradaData.put("TotalCompra", totalCompra);
-        entradaData.put("Observaciones", txtObs.getText().trim());
-
-        int entradaID =
-            GenericDAO.insertAndReturnID("Entrada", entradaData);
-
-        if (entradaID <= 0) {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo registrar la entrada",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        for (Map<String, Object> fila : detalleEntrada) {
-
-            String codigoBarra = fila.get("CodigoBarra").toString();
-            BigDecimal cantidad = new BigDecimal(fila.get("Cantidad").toString());
-
-            List<Map<String, Object>> mat =
-                GenericDAO.select(
-                    "Material",
-                    "CodigoBarra = ?",
-                    codigoBarra
-                );
-
-            if (mat.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                    "No existe material con código de barra: " + codigoBarra,
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            int materialID = Integer.parseInt(
-                mat.get(0).get("MaterialID").toString()
-            );
-
-            BigDecimal stockActual = new BigDecimal(
-                mat.get(0).get("StockActual").toString()
-            );
-
-            LinkedHashMap<String, Object> detalleData = new LinkedHashMap<>();
-            detalleData.put("EntradaID", entradaID);
-            detalleData.put("MaterialID", materialID);
-            detalleData.put("Cantidad", cantidad);
-            detalleData.put("CostoUnitario", fila.get("CostoUnitario"));
-
-            GenericDAO.insert("DetalleEntrada", detalleData);
-
-            BigDecimal nuevoStock = stockActual.add(cantidad);
-
-            LinkedHashMap<String, Object> stockData = new LinkedHashMap<>();
-            stockData.put("StockActual", nuevoStock);
-
-            GenericDAO.update(
-                "Material",
-                stockData,
-                "MaterialID = ?",
-                materialID
-            );
-        }
-
-        JOptionPane.showMessageDialog(this,
-            "Entrada registrada correctamente",
-            "Éxito",
-            JOptionPane.INFORMATION_MESSAGE);
-
+        JOptionPane.showMessageDialog(this, "Entrada registrada correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        
         detalleEntrada.clear();
-        GenericDAO.llenarJTable(tablaEntrada, detalleEntrada);
+        DAO.GenericDAO.llenarJTable(tablaEntrada, detalleEntrada);
         this.dispose();
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btntxtGuardarEntradaMouseClicked
 
     /**
@@ -1392,42 +1254,30 @@ public class registrarEntradaF extends javax.swing.JFrame {
     }
     
     private void llenarCmbProveedor() {
-        List<Map<String, Object>> proveedores =
-            GenericDAO.select(
-                "Proveedor",
-                "1 = ?",
-                1
-            );
-        GenericDAO.llenarComboDesdeTabla(cmbProvE, proveedores, "Nombre");
+        try {
+        SERVICE.ProveedorService servicio = new SERVICE.ProveedorService();
+        List<Map<String, Object>> proveedores = servicio.buscarProveedoresPorNombre("");
+        DAO.GenericDAO.llenarComboDesdeTabla(cmbProvE, proveedores, "Nombre");
+    } catch (Exception e) {
+        System.out.println("Error al cargar proveedores: " + e.getMessage());
+    }
     }
     
     private void actualizarUnidadYCostoPorCodigoBarra(String codigoBarra) {
-        if (codigoBarra == null || codigoBarra.trim().isEmpty()) {
-            txtUnd.setText("");
-            txtCostUni.setText("");
-            return;
-        }
-
-        java.util.List<Map<String, Object>> resultado =
-            GenericDAO.select(
-                "Material",
-                "CodigoBarra = ?",
-                codigoBarra.trim()
-            );
-        if (resultado.isEmpty()) {
-            txtUnd.setText("");
-            txtCostUni.setText("");
-            return;
-        }
-
-        Map<String, Object> material = resultado.get(0);
-
-        Object unidad = material.get("UnidadMedida");
-        Object costo = material.get("Precio");
-
-        txtUnd.setText(unidad != null ? unidad.toString() : "");
-        txtCostUni.setText(costo != null ? costo.toString() : "");
+    if (codigoBarra == null || codigoBarra.trim().isEmpty()) {
+        txtUnd.setText(""); txtCostUni.setText(""); return;
     }
+    try {
+        SERVICE.MaterialService servicio = new SERVICE.MaterialService();
+        Map<String, Object> material = servicio.buscarMaterialPorCodigoBarra(codigoBarra.trim());
+        
+        txtUnd.setText(material.get("UnidadMedida").toString());
+        txtCostUni.setText(material.get("Precio").toString());
+        
+    } catch (Exception e) {
+        txtUnd.setText(""); txtCostUni.setText("");
+    }
+}
     
     private void calcularTotalGeneral() {
 

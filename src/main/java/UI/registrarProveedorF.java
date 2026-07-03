@@ -814,318 +814,198 @@ public class registrarProveedorF extends javax.swing.JFrame {
 
     private void btnRegProvMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRegProvMouseClicked
         String nombre    = txtnombProveedor.getText().trim();
-        String contacto  = txtnombContacto.getText().trim();
-        String direccion = txtDireccionProveedor.getText().trim();
-        String ciudad    = txtCiudadProveedor.getText().trim();
-        String telefono  = txtTelefonoProveedor.getText().trim();
-        String ruc  = txtRUCProveedor.getText().trim();
+    String contacto  = txtnombContacto.getText().trim();
+    String direccion = txtDireccionProveedor.getText().trim();
+    String ciudad    = txtCiudadProveedor.getText().trim();
+    String telefono  = txtTelefonoProveedor.getText().trim();
+    String ruc       = txtRUCProveedor.getText().trim();
 
-        if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre del proveedor es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnombProveedor.requestFocus();
-            return;
-        }
+    if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre del proveedor es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnombProveedor.requestFocus(); return;
+    }
+    if (contacto.isEmpty() || contacto.equals("Ingrese nombre del Contacto")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre de contacto del proveedor es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnombContacto.requestFocus(); return;
+    }
+    if (direccion.isEmpty() || direccion.equals("Ingrese dirección del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La dirección del proveedor es obligatoria", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtDireccionProveedor.requestFocus(); return;
+    }
+    if (ciudad.isEmpty() || ciudad.equals("Ingrese ciudad del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La ciudad del proveedor es obligatoria", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtCiudadProveedor.requestFocus(); return;
+    }
+    if (telefono.isEmpty() || telefono.equals("Ingrese Teléfono del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El teléfono del proveedor es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtTelefonoProveedor.requestFocus(); return;
+    }
+    if (ruc.isEmpty() || ruc.equals("Ingrese RUC del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El RUC del proveedor es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtRUCProveedor.requestFocus(); return;
+    }
+    if (ruc.length() != 11) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El RUC del proveedor debe tener 11 dígitos", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtRUCProveedor.requestFocus(); return;
+    }
 
-        if (contacto.isEmpty() || contacto.equals("Ingrese nombre del Contacto")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre de contacto del proveedor es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnombContacto.requestFocus();
-            return;
-        }
+    try {
+        SERVICE.ProveedorService servicio = new SERVICE.ProveedorService();
+        servicio.registrarProveedor(nombre, contacto, direccion, ciudad, telefono, ruc);
 
-        if (direccion.isEmpty() || direccion.equals("Ingrese dirección del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "La dirección del proveedor es obligatoria",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtDireccionProveedor.requestFocus();
-            return;
-        }
-
-        if (ciudad.isEmpty() || ciudad.equals("Ingrese ciudad del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "La ciudad del proveedor es obligatoria",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtCiudadProveedor.requestFocus();
-            return;
-        }
-
-        if (telefono.isEmpty() || telefono.equals("Ingrese Teléfono del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "El teléfono del proveedor es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtTelefonoProveedor.requestFocus();
-            return;
-        }
-        
-        if (ruc.isEmpty() || ruc.equals("Ingrese RUC del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "El RUC del proveedor es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtRUCProveedor.requestFocus();
-            return;
-        }
-        
-        if (ruc.length() != 11) {
-            JOptionPane.showMessageDialog(this,
-                "El RUC del proveedor debe tener 11 dígitos",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtRUCProveedor.requestFocus();
-            return;
-        }
-
-        java.util.List<Map<String, Object>> existentes =
-            GenericDAO.select("Proveedor", "Nombre = ?", nombre);
-
-        if (!existentes.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "El proveedor ya existe en el sistema",
-                "Duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            txtnombProveedor.requestFocus();
-            return;
-        }
-
-        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("Nombre", nombre);
-        data.put("NombreContacto", contacto);
-        data.put("Direccion", direccion);
-        data.put("Ciudad", ciudad);
-        data.put("Telefono", telefono);
-        data.put("RUC", ruc);
-
-        int filas = GenericDAO.insert("Proveedor", data);
-
-        if (filas > 0) {
-            JOptionPane.showMessageDialog(this,
-                "Proveedor registrado correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo registrar el proveedor",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
+        javax.swing.JOptionPane.showMessageDialog(this, "Proveedor registrado correctamente", "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
+        
         if (txtBusqProveedor.getText().equals("Ingrese nombre del Proveedor")) {
             llenarProveedores("");
         } else {
             llenarProveedores(txtBusqProveedor.getText());
         }
+
+    } catch (Exception e) {
+        String titulo = e.getMessage().contains("ya existe") ? "Duplicado" : "Error";
+        int tipoIcono = e.getMessage().contains("ya existe") ? javax.swing.JOptionPane.WARNING_MESSAGE : javax.swing.JOptionPane.ERROR_MESSAGE;
+        
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), titulo, tipoIcono);
+        if (titulo.equals("Duplicado")) txtnombProveedor.requestFocus();
+    }
     }//GEN-LAST:event_btnRegProvMouseClicked
 
     private void btnActProvMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnActProvMouseClicked
-        if(user.getRolID() != 1){
-            JOptionPane.showMessageDialog(this,
-                "Solo los administradores pueden actualizar",
-                "Permiso no concedido",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int[] filas = tablaEntrada.getSelectedRows();
+    
+    if(user.getRolID() != 1){
+        javax.swing.JOptionPane.showMessageDialog(this, "Solo los administradores pueden actualizar", "Permiso no concedido", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar un proveedor para modificar",
-                "Selección requerida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+ 
+    int[] filas = tablaEntrada.getSelectedRows();
+    if (filas.length == 0) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar un proveedor para modificar", "Selección requerida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    if (filas.length > 1) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Seleccione solo un proveedor para modificar", "Selección inválida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length > 1) {
-            JOptionPane.showMessageDialog(this,
-                "Seleccione solo un proveedor para modificar",
-                "Selección inválida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    int fila = filas[0];
+    Object idObj = tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("ProveedorID"));
+    
+    if (idObj == null) {
+        javax.swing.JOptionPane.showMessageDialog(this, "No se pudo obtener el ID del proveedor", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    int proveedorID = Integer.parseInt(idObj.toString());
 
-        int fila = filas[0];
+  
+    String nombre    = txtnombProveedor.getText().trim();
+    String contacto  = txtnombContacto.getText().trim();
+    String direccion = txtDireccionProveedor.getText().trim();
+    String ciudad    = txtCiudadProveedor.getText().trim();
+    String telefono  = txtTelefonoProveedor.getText().trim();
+    String ruc       = txtRUCProveedor.getText().trim();
 
-        Object idObj = tablaEntrada.getValueAt(
-            fila,
-            tablaEntrada.getColumnModel().getColumnIndex("ProveedorID")
-        );
+ 
+    if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre del proveedor es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnombProveedor.requestFocus(); return;
+    }
+    if (contacto.isEmpty() || contacto.equals("Ingrese nombre del Contacto")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre de contacto del proveedor es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnombContacto.requestFocus(); return;
+    }
+    if (direccion.isEmpty() || direccion.equals("Ingrese dirección del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La dirección del proveedor es obligatoria", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtDireccionProveedor.requestFocus(); return;
+    }
+    if (ciudad.isEmpty() || ciudad.equals("Ingrese ciudad del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La ciudad del proveedor es obligatoria", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtCiudadProveedor.requestFocus(); return;
+    }
+    if (telefono.isEmpty() || telefono.equals("Ingrese Teléfono del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El teléfono del proveedor es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtTelefonoProveedor.requestFocus(); return;
+    }
+    if (ruc.isEmpty() || ruc.equals("Ingrese RUC del Proveedor")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El RUC del proveedor es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtRUCProveedor.requestFocus(); return;
+    }
+    if (ruc.length() != 11) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El RUC del proveedor debe tener 11 dígitos", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtRUCProveedor.requestFocus(); return;
+    }
 
-        if (idObj == null) {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo obtener el ID del proveedor",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    try {
 
-        int proveedorID = Integer.parseInt(idObj.toString());
+        SERVICE.ProveedorService servicio = new SERVICE.ProveedorService();
+        servicio.actualizarProveedor(proveedorID, nombre, contacto, direccion, ciudad, telefono, ruc);
 
-        String nombre    = txtnombProveedor.getText().trim();
-        String contacto  = txtnombContacto.getText().trim();
-        String direccion = txtDireccionProveedor.getText().trim();
-        String ciudad    = txtCiudadProveedor.getText().trim();
-        String telefono  = txtTelefonoProveedor.getText().trim();
-        String ruc  = txtRUCProveedor.getText().trim();
 
-        if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre del proveedor es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnombProveedor.requestFocus();
-            return;
-        }
-
-        if (contacto.isEmpty() || contacto.equals("Ingrese nombre del Contacto")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre de contacto del proveedor es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnombContacto.requestFocus();
-            return;
-        }
-
-        if (direccion.isEmpty() || direccion.equals("Ingrese dirección del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "La dirección del proveedor es obligatoria",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtDireccionProveedor.requestFocus();
-            return;
-        }
-
-        if (ciudad.isEmpty() || ciudad.equals("Ingrese ciudad del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "La ciudad del proveedor es obligatoria",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtCiudadProveedor.requestFocus();
-            return;
-        }
-
-        if (telefono.isEmpty() || telefono.equals("Ingrese Teléfono del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "El teléfono del proveedor es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtTelefonoProveedor.requestFocus();
-            return;
-        }
-        
-        if (ruc.isEmpty() || ruc.equals("Ingrese RUC del Proveedor")) {
-            JOptionPane.showMessageDialog(this,
-                "El RUC del proveedor es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtRUCProveedor.requestFocus();
-            return;
-        }
-        
-        if (ruc.length() != 11) {
-            JOptionPane.showMessageDialog(this,
-                "El RUC del proveedor debe tener 11 dígitos",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtRUCProveedor.requestFocus();
-            return;
-        }
-
-        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("Nombre", nombre);
-        data.put("NombreContacto", contacto);
-        data.put("Direccion", direccion);
-        data.put("Ciudad", ciudad);
-        data.put("Telefono", telefono);
-        data.put("RUC", ruc);
-
-        int filasAfectadas =
-            GenericDAO.update("Proveedor", data, "ProveedorID = ?", proveedorID);
-
-        if (filasAfectadas > 0) {
-            JOptionPane.showMessageDialog(this,
-                "Proveedor actualizado correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo actualizar el proveedor",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
+        javax.swing.JOptionPane.showMessageDialog(this, "Proveedor actualizado correctamente", "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
+
         if (txtBusqProveedor.getText().equals("Ingrese nombre del Proveedor")) {
             llenarProveedores("");
         } else {
             llenarProveedores(txtBusqProveedor.getText());
         }
+
+    } catch (Exception e) {
+        String titulo = e.getMessage().contains("Ya existe") ? "Duplicado" : "Error";
+        int tipoIcono = e.getMessage().contains("Ya existe") ? javax.swing.JOptionPane.WARNING_MESSAGE : javax.swing.JOptionPane.ERROR_MESSAGE;
+        
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), titulo, tipoIcono);
+    }
     }//GEN-LAST:event_btnActProvMouseClicked
 
     private void btnEliminaProvMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnEliminaProvMouseClicked
-        if(user.getRolID() != 1){
-            JOptionPane.showMessageDialog(this,
-                "Solo los administradores pueden eliminar",
-                "Permiso no concedido",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int[] filas = tablaEntrada.getSelectedRows();
+        // 1. Validar administrador
+    if(user.getRolID() != 1){
+        javax.swing.JOptionPane.showMessageDialog(this, "Solo los administradores pueden eliminar", "Permiso no concedido", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // 2. Validar selección
+    int[] filas = tablaEntrada.getSelectedRows();
+    if (filas.length == 0) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar al menos un proveedor para eliminar", "Selección requerida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar al menos un proveedor para eliminar",
-                "Selección requerida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    int confirmacion = javax.swing.JOptionPane.showConfirmDialog(this, "¿Está seguro de eliminar el(los) proveedor(es) seleccionado(s)?", "Confirmar eliminación", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
+    if (confirmacion != javax.swing.JOptionPane.YES_OPTION) {
+        return;
+    }
 
-        int confirmacion = JOptionPane.showConfirmDialog(
-            this,
-            "¿Está seguro de eliminar el(los) proveedor(es) seleccionado(s)?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
-
-        if (confirmacion != JOptionPane.YES_OPTION) {
-            return;
-        }
-
-        int eliminados = 0;
-
+    try {
+        // 3. Recopilar IDs
+        java.util.List<Integer> idsAEliminar = new java.util.ArrayList<>();
         for (int fila : filas) {
-
-            Object idObj = tablaEntrada.getValueAt(
-                fila,
-                tablaEntrada.getColumnModel().getColumnIndex("ProveedorID")
-            );
-
+            Object idObj = tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("ProveedorID"));
             if (idObj != null) {
-                int proveedorID = Integer.parseInt(idObj.toString());
-                eliminados += GenericDAO.delete(
-                    "Proveedor",
-                    "ProveedorID = ?",
-                    proveedorID
-                );
+                idsAEliminar.add(Integer.parseInt(idObj.toString()));
             }
         }
 
-        JOptionPane.showMessageDialog(this,
-            eliminados + " proveedor(es) eliminado(s)",
-            "Resultado",
-            JOptionPane.INFORMATION_MESSAGE);
+        // 4. Delegar al Servicio
+        SERVICE.ProveedorService servicio = new SERVICE.ProveedorService();
+        int eliminados = servicio.eliminarProveedores(idsAEliminar);
+
+        // 5. Mostrar éxito
+        javax.swing.JOptionPane.showMessageDialog(this, eliminados + " proveedor(es) eliminado(s)", "Resultado", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
+
         if (txtBusqProveedor.getText().equals("Ingrese nombre del Proveedor")) {
             llenarProveedores("");
         } else {
             llenarProveedores(txtBusqProveedor.getText());
         }
+
+    } catch (Exception e) {
+        // Error si el proveedor está amarrado a una factura
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btnEliminaProvMouseClicked
 
     private void txtRUCProveedorFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtRUCProveedorFocusGained
@@ -1233,14 +1113,17 @@ public class registrarProveedorF extends javax.swing.JFrame {
     }
     
     private void llenarProveedores(String where) {
-        java.util.List<Map<String, Object>> proveedores =
-            GenericDAO.select(
-                "Proveedor",
-                "Nombre LIKE ?",
-                "%" + where + "%"
-            );
-        GenericDAO.llenarJTable(tablaEntrada, proveedores);
+    try {
+        // Delegar búsqueda al servicio
+        SERVICE.ProveedorService servicio = new SERVICE.ProveedorService();
+        java.util.List<java.util.Map<String, Object>> proveedores = servicio.buscarProveedoresPorNombre(where);
+        
+        // Enviar a la vista
+        DAO.GenericDAO.llenarJTable(tablaEntrada, proveedores);
+    } catch (Exception e) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Error al cargar proveedores: " + e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
     }
+}
 
     private void limpiarCampos() {
         txtnombProveedor.setText("Ingrese nombre del Proveedor");

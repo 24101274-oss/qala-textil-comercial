@@ -707,177 +707,76 @@ public class registroClienteF extends javax.swing.JFrame {
 
     private void btnRegClienteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRegClienteMouseClicked
         String nombre     = txtnombCliente.getText().trim();
-        String documento  = txtdocCliente.getText().trim();
-        String telefono   = txtnumCliente.getText().trim();
-        String direccion  = txtdirecCliente.getText().trim();
-        String email      = txtmailCliente.getText().trim();
-        String tipoDoc    = cmbTipDoc.getSelectedItem().toString();
+    String documento  = txtdocCliente.getText().trim();
+    String telefono   = txtnumCliente.getText().trim();
+    String direccion  = txtdirecCliente.getText().trim();
+    String email      = txtmailCliente.getText().trim();
+    String tipoDoc    = cmbTipDoc.getSelectedItem().toString();
 
-        if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Cliente")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre del cliente es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnombCliente.requestFocus();
-            return;
-        }
+    // 1. Validaciones visuales básicas y de placeholders
+    if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Cliente")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre del cliente es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnombCliente.requestFocus(); return;
+    }
+    if (tipoDoc == null || tipoDoc.isBlank()) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar un tipo de documento", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        cmbTipDoc.requestFocus(); return;
+    }
+    if (documento.isEmpty() || documento.equals("Ingrese Documento del Cliente")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El documento del cliente es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtdocCliente.requestFocus(); return;
+    }
 
-        if (tipoDoc == null || tipoDoc.isBlank()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar un tipo de documento",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            cmbTipDoc.requestFocus();
-            return;
-        }
-
-        if (documento.isEmpty() || documento.equals("Ingrese Documento del Cliente")) {
-            JOptionPane.showMessageDialog(this,
-                "El documento del cliente es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtdocCliente.requestFocus();
-            return;
-        }
-
-        String tipo = cmbTipDoc.getSelectedItem().toString();
-
-        switch (tipo) {
-
-            case "DNI" -> {
-                if (documento.length() != 8) {
-                    JOptionPane.showMessageDialog(this,
-                        "El DNI debe tener exactamente 8 dígitos",
-                        "Validación",
-                        JOptionPane.WARNING_MESSAGE);
-                    txtdocCliente.requestFocus();
-                    return;
-                }
-            }
-
-            case "RUC" -> {
-                if (documento.length() != 11) {
-                    JOptionPane.showMessageDialog(this,
-                        "El RUC debe tener exactamente 11 dígitos",
-                        "Validación",
-                        JOptionPane.WARNING_MESSAGE);
-                    txtdocCliente.requestFocus();
-                    return;
-                }
-            }
-
-            case "Pasaporte" -> {
-                if (documento.length() < 6 || documento.length() > 12) {
-                    JOptionPane.showMessageDialog(this,
-                        "El pasaporte debe tener entre 6 y 12 caracteres",
-                        "Validación",
-                        JOptionPane.WARNING_MESSAGE);
-                    txtdocCliente.requestFocus();
-                    return;
-                }
-            }
-
-            default -> {
-                JOptionPane.showMessageDialog(this,
-                    "Tipo de documento no válido",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-                cmbTipDoc.requestFocus();
-                return;
+    // 2. Validación de extensión según el tipo de documento
+    switch (tipoDoc) {
+        case "DNI" -> {
+            if (documento.length() != 8) {
+                javax.swing.JOptionPane.showMessageDialog(this, "El DNI debe tener exactamente 8 dígitos", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+                txtdocCliente.requestFocus(); return;
             }
         }
-
-        if (telefono.isEmpty() || telefono.equals("Ingrese número de teléfono")) {
-            JOptionPane.showMessageDialog(this,
-                "El teléfono del cliente es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnumCliente.requestFocus();
-            return;
+        case "RUC" -> {
+            if (documento.length() != 11) {
+                javax.swing.JOptionPane.showMessageDialog(this, "El RUC debe tener exactamente 11 dígitos", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+                txtdocCliente.requestFocus(); return;
+            }
         }
-
-        if (direccion.isEmpty() || direccion.equals("Ingrese Dirección del Cliente")) {
-            JOptionPane.showMessageDialog(this,
-                "La dirección del cliente es obligatoria",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtdirecCliente.requestFocus();
-            return;
+        case "Pasaporte" -> {
+            if (documento.length() < 6 || documento.length() > 12) {
+                javax.swing.JOptionPane.showMessageDialog(this, "El pasaporte debe tener entre 6 y 12 caracteres", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+                txtdocCliente.requestFocus(); return;
+            }
         }
-        
-        if (email.isEmpty() || email.equals("Ingrese correo del Cliente")) {
-            JOptionPane.showMessageDialog(this,
-                "El correo electrónico del cliente es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtmailCliente.requestFocus();
-            return;
+        default -> {
+            javax.swing.JOptionPane.showMessageDialog(this, "Tipo de documento no válido", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+            cmbTipDoc.requestFocus(); return;
         }
+    }
 
-        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-            JOptionPane.showMessageDialog(this,
-                "El correo electrónico ingresado no es válido",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtmailCliente.requestFocus();
-            return;
-        }
-        
-        java.util.List<Map<String, Object>> mismoNombre =
-            GenericDAO.select(
-                "Cliente",
-                "Nombre = ?",
-                nombre
-            );
+    if (telefono.isEmpty() || telefono.equals("Ingrese número de teléfono")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El teléfono del cliente es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnumCliente.requestFocus(); return;
+    }
+    if (direccion.isEmpty() || direccion.equals("Ingrese Dirección del Cliente")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La dirección del cliente es obligatoria", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtdirecCliente.requestFocus(); return;
+    }
+    if (email.isEmpty() || email.equals("Ingrese correo del Cliente")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El correo electrónico del cliente es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtmailCliente.requestFocus(); return;
+    }
+    if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El correo electrónico ingresado no es válido", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtmailCliente.requestFocus(); return;
+    }
 
-        if (!mismoNombre.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Ya existe un cliente con ese nombre",
-                "Nombre duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            txtdocCliente.requestFocus();
-            return;
-        }
+    try {
+        // 3. Delegamos el trabajo de validación de base de datos e inserción al Servicio
+        SERVICE.ClienteService servicio = new SERVICE.ClienteService();
+        servicio.registrarCliente(nombre, tipoDoc, documento, telefono, direccion, email);
 
-        java.util.List<Map<String, Object>> existentes =
-            GenericDAO.select(
-                "Cliente",
-                "TipoDocumento = ? AND Documento = ?",
-                tipoDoc,
-                documento
-            );
-
-        if (!existentes.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Ya existe un cliente con el mismo tipo y número de documento",
-                "Documento duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            txtdocCliente.requestFocus();
-            return;
-        }
-
-        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("Nombre", nombre);
-        data.put("TipoDocumento", tipoDoc);
-        data.put("Documento", documento);
-        data.put("Telefono", telefono);
-        data.put("Direccion", direccion);
-        data.put("Email", email);
-
-        int filas = GenericDAO.insert("Cliente", data);
-
-        if (filas > 0) {
-            JOptionPane.showMessageDialog(this,
-                "Cliente registrado correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo registrar el cliente",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
-
+        // 4. Si no hay excepciones, mostramos éxito
+        javax.swing.JOptionPane.showMessageDialog(this, "Cliente registrado correctamente", "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
 
         if (txtbusqCliente.getText().equals("Ingrese Nombre del Cliente")) {
@@ -885,225 +784,115 @@ public class registroClienteF extends javax.swing.JFrame {
         } else {
             llenarClientes(txtbusqCliente.getText());
         }
+
+    } catch (Exception e) {
+        // Atrapamos mensajes personalizados de duplicados enviados por el servicio
+        String titulo = e.getMessage().contains("duplicado") || e.getMessage().contains("Ya existe") ? "Duplicado" : "Error";
+        int tipoIcono = titulo.equals("Duplicado") ? javax.swing.JOptionPane.WARNING_MESSAGE : javax.swing.JOptionPane.ERROR_MESSAGE;
+        
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), titulo, tipoIcono);
+        txtdocCliente.requestFocus();
+    }
     }//GEN-LAST:event_btnRegClienteMouseClicked
 
     private void btnActClienteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnActClienteMouseClicked
-        if(user.getRolID() != 1){
-            JOptionPane.showMessageDialog(this,
-                "Solo los administradores pueden actualizar",
-                "Permiso no concedido",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int[] filas = tablaEntrada.getSelectedRows();
+        // 1. Validar permisos de administrador
+    if(user.getRolID() != 1){
+        javax.swing.JOptionPane.showMessageDialog(this, "Solo los administradores pueden actualizar", "Permiso no concedido", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar un cliente para modificar",
-                "Selección requerida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    // 2. Validar selección de la tabla
+    int[] filas = tablaEntrada.getSelectedRows();
+    if (filas.length == 0) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar un cliente para modificar", "Selección requerida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    if (filas.length > 1) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Seleccione solo un cliente para modificar", "Selección inválida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length > 1) {
-            JOptionPane.showMessageDialog(this,
-                "Seleccione solo un cliente para modificar",
-                "Selección inválida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    int fila = filas[0];
+    Object idObj = tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("ClienteID"));
 
-        int fila = filas[0];
+    if (idObj == null) {
+        javax.swing.JOptionPane.showMessageDialog(this, "No se pudo obtener el ID del cliente", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    int clienteID = Integer.parseInt(idObj.toString());
 
-        Object idObj = tablaEntrada.getValueAt(
-            fila,
-            tablaEntrada.getColumnModel().getColumnIndex("ClienteID")
-        );
+    // 3. Obtener textos
+    String nombre    = txtnombCliente.getText().trim();
+    String documento = txtdocCliente.getText().trim();
+    String telefono  = txtnumCliente.getText().trim();
+    String direccion = txtdirecCliente.getText().trim();
+    String email     = txtmailCliente.getText().trim();
+    String tipoDoc   = cmbTipDoc.getSelectedItem().toString();
 
-        if (idObj == null) {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo obtener el ID del cliente",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    // 4. Validaciones visuales y de formato
+    if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Cliente")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre del cliente es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnombCliente.requestFocus(); return;
+    }
+    if (tipoDoc == null || tipoDoc.isBlank()) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar un tipo de documento", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        cmbTipDoc.requestFocus(); return;
+    }
+    if (documento.isEmpty() || documento.equals("Ingrese Documento del Cliente")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El documento del cliente es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtdocCliente.requestFocus(); return;
+    }
 
-        int clienteID = Integer.parseInt(idObj.toString());
-
-        String nombre    = txtnombCliente.getText().trim();
-        String documento = txtdocCliente.getText().trim();
-        String telefono  = txtnumCliente.getText().trim();
-        String direccion = txtdirecCliente.getText().trim();
-        String email     = txtmailCliente.getText().trim();
-        String tipoDoc   = cmbTipDoc.getSelectedItem().toString();
-
-        if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Cliente")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre del cliente es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnombCliente.requestFocus();
-            return;
-        }
-
-        if (tipoDoc == null || tipoDoc.isBlank()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar un tipo de documento",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            cmbTipDoc.requestFocus();
-            return;
-        }
-
-        if (documento.isEmpty() || documento.equals("Ingrese Documento del Cliente")) {
-            JOptionPane.showMessageDialog(this,
-                "El documento del cliente es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtdocCliente.requestFocus();
-            return;
-        }
-
-        String tipo = cmbTipDoc.getSelectedItem().toString();
-
-        switch (tipo) {
-
-            case "DNI" -> {
-                if (documento.length() != 8) {
-                    JOptionPane.showMessageDialog(this,
-                        "El DNI debe tener exactamente 8 dígitos",
-                        "Validación",
-                        JOptionPane.WARNING_MESSAGE);
-                    txtdocCliente.requestFocus();
-                    return;
-                }
-            }
-
-            case "RUC" -> {
-                if (documento.length() != 11) {
-                    JOptionPane.showMessageDialog(this,
-                        "El RUC debe tener exactamente 11 dígitos",
-                        "Validación",
-                        JOptionPane.WARNING_MESSAGE);
-                    txtdocCliente.requestFocus();
-                    return;
-                }
-            }
-
-            case "Pasaporte" -> {
-                if (documento.length() < 6 || documento.length() > 12) {
-                    JOptionPane.showMessageDialog(this,
-                        "El pasaporte debe tener entre 6 y 12 caracteres",
-                        "Validación",
-                        JOptionPane.WARNING_MESSAGE);
-                    txtdocCliente.requestFocus();
-                    return;
-                }
-            }
-
-            default -> {
-                JOptionPane.showMessageDialog(this,
-                    "Tipo de documento no válido",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-                cmbTipDoc.requestFocus();
-                return;
+    switch (tipoDoc) {
+        case "DNI" -> {
+            if (documento.length() != 8) {
+                javax.swing.JOptionPane.showMessageDialog(this, "El DNI debe tener exactamente 8 dígitos", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+                txtdocCliente.requestFocus(); return;
             }
         }
-
-        if (telefono.isEmpty() || telefono.equals("Ingrese número de teléfono")) {
-            JOptionPane.showMessageDialog(this,
-                "El teléfono del cliente es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnumCliente.requestFocus();
-            return;
+        case "RUC" -> {
+            if (documento.length() != 11) {
+                javax.swing.JOptionPane.showMessageDialog(this, "El RUC debe tener exactamente 11 dígitos", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+                txtdocCliente.requestFocus(); return;
+            }
         }
-
-        if (direccion.isEmpty() || direccion.equals("Ingrese Dirección del Cliente")) {
-            JOptionPane.showMessageDialog(this,
-                "La dirección del cliente es obligatoria",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtdirecCliente.requestFocus();
-            return;
+        case "Pasaporte" -> {
+            if (documento.length() < 6 || documento.length() > 12) {
+                javax.swing.JOptionPane.showMessageDialog(this, "El pasaporte debe tener entre 6 y 12 caracteres", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+                txtdocCliente.requestFocus(); return;
+            }
         }
-
-        if (email.isEmpty() || email.equals("Ingrese correo del Cliente")) {
-            JOptionPane.showMessageDialog(this,
-                "El correo electrónico del cliente es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtmailCliente.requestFocus();
-            return;
+        default -> {
+            javax.swing.JOptionPane.showMessageDialog(this, "Tipo de documento no válido", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+            cmbTipDoc.requestFocus(); return;
         }
+    }
 
-        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-            JOptionPane.showMessageDialog(this,
-                "El correo electrónico ingresado no es válido",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtmailCliente.requestFocus();
-            return;
-        }
-        
-        java.util.List<Map<String, Object>> mismoNombre =
-            GenericDAO.select(
-                "Cliente",
-                "Nombre = ?",
-                nombre
-            );
+    if (telefono.isEmpty() || telefono.equals("Ingrese número de teléfono")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El teléfono del cliente es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnumCliente.requestFocus(); return;
+    }
+    if (direccion.isEmpty() || direccion.equals("Ingrese Dirección del Cliente")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La dirección del cliente es obligatoria", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtdirecCliente.requestFocus(); return;
+    }
+    if (email.isEmpty() || email.equals("Ingrese correo del Cliente")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El correo electrónico del cliente es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtmailCliente.requestFocus(); return;
+    }
+    if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El correo electrónico ingresado no es válido", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtmailCliente.requestFocus(); return;
+    }
 
-        if (!mismoNombre.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Ya existe un cliente con ese nombre",
-                "Nombre duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            txtdocCliente.requestFocus();
-            return;
-        }
+    try {
+        // 5. Enviar al SERVICIO seguro
+        SERVICE.ClienteService servicio = new SERVICE.ClienteService();
+        servicio.actualizarCliente(clienteID, nombre, tipoDoc, documento, telefono, direccion, email);
 
-        java.util.List<Map<String, Object>> existentes =
-            GenericDAO.select(
-                "Cliente",
-                "TipoDocumento = ? AND Documento = ? AND ClienteID <> ?",
-                tipoDoc,
-                documento,
-                clienteID
-            );
-
-        if (!existentes.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Ya existe otro cliente con el mismo tipo y número de documento",
-                "Documento duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            txtdocCliente.requestFocus();
-            return;
-        }
-
-        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("Nombre", nombre);
-        data.put("TipoDocumento", tipoDoc);
-        data.put("Documento", documento);
-        data.put("Telefono", telefono);
-        data.put("Direccion", direccion);
-        data.put("Email", email);
-
-        int filasAfectadas =
-            GenericDAO.update("Cliente", data, "ClienteID = ?", clienteID);
-
-        if (filasAfectadas > 0) {
-            JOptionPane.showMessageDialog(this,
-                "Cliente actualizado correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo actualizar el cliente",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
-
+        // 6. Éxito y recarga visual
+        javax.swing.JOptionPane.showMessageDialog(this, "Cliente actualizado correctamente", "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
 
         if (txtbusqCliente.getText().equals("Ingrese Nombre del Cliente")) {
@@ -1111,62 +900,50 @@ public class registroClienteF extends javax.swing.JFrame {
         } else {
             llenarClientes(txtbusqCliente.getText());
         }
+
+    } catch (Exception e) {
+        String titulo = e.getMessage().contains("Ya existe") ? "Duplicado" : "Error";
+        int tipoIcono = titulo.equals("Duplicado") ? javax.swing.JOptionPane.WARNING_MESSAGE : javax.swing.JOptionPane.ERROR_MESSAGE;
+        
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), titulo, tipoIcono);
+    }
     }//GEN-LAST:event_btnActClienteMouseClicked
 
     private void btnEliminarClienteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnEliminarClienteMouseClicked
-        if(user.getRolID() != 1){
-            JOptionPane.showMessageDialog(this,
-                "Solo los administradores pueden eliminar",
-                "Permiso no concedido",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int[] filas = tablaEntrada.getSelectedRows();
+        // 1. Validar administrador
+    if(user.getRolID() != 1){
+        javax.swing.JOptionPane.showMessageDialog(this, "Solo los administradores pueden eliminar", "Permiso no concedido", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // 2. Validar selección
+    int[] filas = tablaEntrada.getSelectedRows();
+    if (filas.length == 0) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar al menos un cliente para eliminar", "Selección requerida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar al menos un cliente para eliminar",
-                "Selección requerida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    int confirmacion = javax.swing.JOptionPane.showConfirmDialog(this, "¿Está seguro de eliminar el(los) cliente(s) seleccionado(s)?", "Confirmar eliminación", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
+    if (confirmacion != javax.swing.JOptionPane.YES_OPTION) {
+        return;
+    }
 
-        int confirmacion = JOptionPane.showConfirmDialog(
-            this,
-            "¿Está seguro de eliminar el(los) cliente(s) seleccionado(s)?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
-
-        if (confirmacion != JOptionPane.YES_OPTION) {
-            return;
-        }
-
-        int eliminados = 0;
-
+    try {
+        // 3. Recopilar IDs
+        java.util.List<Integer> idsAEliminar = new java.util.ArrayList<>();
         for (int fila : filas) {
-
-            Object idObj = tablaEntrada.getValueAt(
-                fila,
-                tablaEntrada.getColumnModel().getColumnIndex("ClienteID")
-            );
-
+            Object idObj = tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("ClienteID"));
             if (idObj != null) {
-                int clienteID = Integer.parseInt(idObj.toString());
-                eliminados += GenericDAO.delete(
-                    "Cliente",
-                    "ClienteID = ?",
-                    clienteID
-                );
+                idsAEliminar.add(Integer.parseInt(idObj.toString()));
             }
         }
 
-        JOptionPane.showMessageDialog(this,
-            eliminados + " cliente(s) eliminado(s)",
-            "Resultado",
-            JOptionPane.INFORMATION_MESSAGE);
+        // 4. Delegar al Servicio
+        SERVICE.ClienteService servicio = new SERVICE.ClienteService();
+        int eliminados = servicio.eliminarClientes(idsAEliminar);
 
+        // 5. Mostrar éxito
+        javax.swing.JOptionPane.showMessageDialog(this, eliminados + " cliente(s) eliminado(s)", "Resultado", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
 
         if (txtbusqCliente.getText().equals("Ingrese Nombre del Cliente")) {
@@ -1174,6 +951,11 @@ public class registroClienteF extends javax.swing.JFrame {
         } else {
             llenarClientes(txtbusqCliente.getText());
         }
+
+    } catch (Exception e) {
+        // Error si el cliente está amarrado a una factura/salida
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btnEliminarClienteMouseClicked
 
     private void btnCancelarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCancelarMouseClicked
@@ -1261,14 +1043,22 @@ public class registroClienteF extends javax.swing.JFrame {
     }
     
     private void llenarClientes(String where) {
-        java.util.List<Map<String, Object>> clientes =
-            GenericDAO.select(
-                "Cliente",
-                "Nombre LIKE ?",
-                "%" + where + "%"
-            );
-        GenericDAO.llenarJTable(tablaEntrada, clientes);
+    try {
+        
+        SERVICE.ClienteService servicio = new SERVICE.ClienteService();
+        java.util.List<java.util.Map<String, Object>> clientes = servicio.buscarClientesPorNombre(where);
+        
+        
+        DAO.GenericDAO.llenarJTable(tablaEntrada, clientes);
+        
+    } catch (Exception e) {
+        
+        javax.swing.JOptionPane.showMessageDialog(this, 
+            "Error al cargar la lista de clientes: " + e.getMessage(), 
+            "Error", 
+            javax.swing.JOptionPane.ERROR_MESSAGE);
     }
+}
     
     private void configurarSeleccionTabla() {
 

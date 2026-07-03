@@ -9,141 +9,63 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableCellRenderer;
 import java.awt.Component;
-
+import java.util.StringJoiner;
 public class GenericDAO {
 
-    public static List<Map<String, Object>> select(
-            String table,
-            String whereClause,
-            Object... params
-    ) {
-
-        dbBean con = new dbBean();
+    public static List<Map<String, Object>> selectQuery(Connection conn, String sql, Object... params) throws Exception {
         List<Map<String, Object>> rows = new ArrayList<>();
-
-        String sql = "SELECT * FROM " + table;
-        if (whereClause != null && !whereClause.isBlank()) {
-            sql += " WHERE " + whereClause;
-        }
-
-        try (PreparedStatement ps = con.getConnection().prepareStatement(sql)) {
-
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (int i = 0; i < params.length; i++) {
                 ps.setObject(i + 1, params[i]);
             }
-
-            ResultSet rs = ps.executeQuery();
-            ResultSetMetaData meta = rs.getMetaData();
-            int cols = meta.getColumnCount();
-
-            while (rs.next()) {
-                Map<String, Object> row = new java.util.LinkedHashMap<>();
-
-                for (int i = 1; i <= cols; i++) {
-                    row.put(meta.getColumnLabel(i), rs.getObject(i));
+            try (ResultSet rs = ps.executeQuery()) {
+                java.sql.ResultSetMetaData meta = rs.getMetaData();
+                int cols = meta.getColumnCount();
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    for (int i = 1; i <= cols; i++) {
+                        row.put(meta.getColumnLabel(i), rs.getObject(i));
+                    }
+                    rows.add(row);
                 }
-
-                rows.add(row);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                con.close();
-            } catch (SQLException e) {
             }
         }
-
         return rows;
     }
     
-    public static List<Map<String, Object>> selectQuery(
-            String sql,
-            Object... params
-    ) {
-
-        dbBean con = new dbBean();
-        List<Map<String, Object>> rows = new ArrayList<>();
-
-        try (PreparedStatement ps = con.getConnection().prepareStatement(sql)) {
-
-            for (int i = 0; i < params.length; i++) {
-                ps.setObject(i + 1, params[i]);
-            }
-
-            ResultSet rs = ps.executeQuery();
-            ResultSetMetaData meta = rs.getMetaData();
-            int cols = meta.getColumnCount();
-
-            while (rs.next()) {
-                Map<String, Object> row = new LinkedHashMap<>();
-                for (int i = 1; i <= cols; i++) {
-                    row.put(meta.getColumnLabel(i), rs.getObject(i));
-                }
-                rows.add(row);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try { con.close(); } catch (SQLException e) {}
-        }
-
-        return rows;
+    public static List<Map<String, Object>> select(Connection conn, String table, String condition, Object... params) throws Exception {
+        String sql = "SELECT * FROM " + table + (condition != null && !condition.isEmpty() ? " WHERE " + condition : "");
+        return selectQuery(conn, sql, params);
     }
 
-    public static int insert(
-            String table,
-            Map<String, Object> data
-    ) {
-
-        dbBean con = new dbBean();
-        int rows = 0;
-
-        StringJoiner cols = new StringJoiner(", ");
-        StringJoiner vals = new StringJoiner(", ");
-
-        for (String col : data.keySet()) {
-            cols.add(col);
-            vals.add("?");
-        }
-
-        String sql = "INSERT INTO " + table +
-                     " (" + cols + ") VALUES (" + vals + ")";
-
-        try (PreparedStatement ps = con.getConnection().prepareStatement(sql)) {
-
-            int i = 1;
-            for (Object val : data.values()) {
-                ps.setObject(i++, val);
+    public static int insert(Connection conn, String table, Map<String, Object> data) throws Exception {
+        StringBuilder sql = new StringBuilder("INSERT INTO ").append(table).append(" (");
+        StringBuilder placeholders = new StringBuilder();
+        
+        int i = 0;
+        for (String key : data.keySet()) {
+            sql.append(key);
+            placeholders.append("?");
+            if (i < data.size() - 1) {
+                sql.append(", ");
+                placeholders.append(", ");
             }
-
-            rows = ps.executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                con.close();
-            } catch (SQLException e) {
-            }
+            i++;
         }
+        sql.append(") VALUES (").append(placeholders).append(")");
 
-        return rows;
+        try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int index = 1;
+            for (Object value : data.values()) {
+                ps.setObject(index++, value);
+            }
+            return ps.executeUpdate();
+        }
     }
 
-    public static int update(
-            String table,
-            Map<String, Object> data,
-            String whereClause,
-            Object... whereParams
-    ) {
-
-        dbBean con = new dbBean();
-        int rows = 0;
-
-        StringJoiner set = new StringJoiner(", ");
+    public static int update(Connection conn, String table, Map<String, Object> data, String whereClause, Object... whereParams) throws Exception {
+        java.util.StringJoiner set = new java.util.StringJoiner(", ");
+        
         for (String col : data.keySet()) {
             set.add(col + " = ?");
         }
@@ -152,60 +74,34 @@ public class GenericDAO {
                      " SET " + set +
                      " WHERE " + whereClause;
 
-        try (PreparedStatement ps = con.getConnection().prepareStatement(sql)) {
-
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             int i = 1;
 
-            // valores del SET
+            // Valores del SET (los nuevos datos)
             for (Object val : data.values()) {
                 ps.setObject(i++, val);
             }
 
-            // valores del WHERE
+            // Valores del WHERE (las condiciones)
             for (Object param : whereParams) {
                 ps.setObject(i++, param);
             }
 
-            rows = ps.executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                con.close();
-            } catch (SQLException e) {
-            }
+            return ps.executeUpdate();
         }
-
-        return rows;
     }
     
-    public static int delete(
-            String table,
-            String whereClause,
-            Object... params
-    ) {
-
-        dbBean con = new dbBean();
-        int rows = 0;
-
+    public static int delete(Connection conn, String table, String whereClause, Object... params) throws Exception {
         String sql = "DELETE FROM " + table + " WHERE " + whereClause;
 
-        try (PreparedStatement ps = con.getConnection().prepareStatement(sql)) {
-
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (int i = 0; i < params.length; i++) {
                 ps.setObject(i + 1, params[i]);
             }
-
-            rows = ps.executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try { con.close(); } catch (SQLException e) {}
-        }
-
-        return rows;
+            return ps.executeUpdate();
+        } 
+        // Ya no capturamos la excepción aquí ni cerramos la conexión en el 'finally', 
+        // de eso se encarga ahora el bloque 'finally' de tu clase Service.
     }
     
     public static void llenarComboDesdeTabla(
@@ -296,168 +192,36 @@ public class GenericDAO {
         }
     }
     
-    public static int insertAndReturnID(
-            String table,
-            Map<String, Object> data
-    ) {
-
-        dbBean con = new dbBean();
-        int generatedId = -1;
-
-        StringJoiner cols = new StringJoiner(", ");
-        StringJoiner vals = new StringJoiner(", ");
-
-        for (String col : data.keySet()) {
-            cols.add(col);
-            vals.add("?");
+    public static int insertAndReturnID(Connection conn, String table, Map<String, Object> data) throws Exception {
+        StringBuilder sql = new StringBuilder("INSERT INTO ").append(table).append(" (");
+        StringBuilder placeholders = new StringBuilder();
+        
+        int i = 0;
+        for (String key : data.keySet()) {
+            sql.append(key);
+            placeholders.append("?");
+            if (i < data.size() - 1) {
+                sql.append(", ");
+                placeholders.append(", ");
+            }
+            i++;
         }
+        sql.append(") VALUES (").append(placeholders).append(")");
 
-        String sql =
-            "INSERT INTO " + table +
-            " (" + cols + ") VALUES (" + vals + "); " +
-            "SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
-        try (PreparedStatement ps =
-                con.getConnection().prepareStatement(sql)) {
-
-            int i = 1;
-            for (Object val : data.values()) {
-                ps.setObject(i++, val);
+        // Usamos Statement.RETURN_GENERATED_KEYS de forma segura
+        try (PreparedStatement ps = conn.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS)) {
+            int index = 1;
+            for (Object value : data.values()) {
+                ps.setObject(index++, value);
             }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    generatedId = rs.getInt(1);
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                con.close();
-            } catch (SQLException e) {
-            }
-        }
-
-        return generatedId;
-    }
-    
-    public static List<Map<String, Object>> select(
-            Connection conn,
-            String table,
-            String whereClause,
-            Object... params
-    ) {
-
-        List<Map<String, Object>> rows = new ArrayList<>();
-
-        String sql = "SELECT * FROM " + table;
-        if (whereClause != null && !whereClause.isBlank()) {
-            sql += " WHERE " + whereClause;
-        }
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            for (int i = 0; i < params.length; i++) {
-                ps.setObject(i + 1, params[i]);
-            }
-
-            ResultSet rs = ps.executeQuery();
-            ResultSetMetaData meta = rs.getMetaData();
-            int cols = meta.getColumnCount();
-
-            while (rs.next()) {
-                Map<String, Object> row = new LinkedHashMap<>();
-                for (int i = 1; i <= cols; i++) {
-                    row.put(meta.getColumnLabel(i), rs.getObject(i));
-                }
-                rows.add(row);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return rows;
-    }
-    
-    public static int insertAndReturnID(
-            Connection conn,
-            String table,
-            Map<String, Object> data
-    ) {
-
-        int generatedId = -1;
-
-        StringJoiner cols = new StringJoiner(", ");
-        StringJoiner vals = new StringJoiner(", ");
-
-        for (String col : data.keySet()) {
-            cols.add(col);
-            vals.add("?");
-        }
-
-        String sql =
-            "INSERT INTO " + table +
-            " (" + cols + ") VALUES (" + vals + ")";
-
-        try (PreparedStatement ps =
-                conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            int i = 1;
-            for (Object val : data.values()) {
-                ps.setObject(i++, val);
-            }
-
             ps.executeUpdate();
-
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
-                    generatedId = rs.getInt(1);
+                    return rs.getInt(1);
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-
-        return generatedId;
+        return -1;
     }
     
-    public static int insert(
-            Connection conn,
-            String table,
-            Map<String, Object> data
-    ) {
-
-        int rows = 0;
-
-        StringJoiner cols = new StringJoiner(", ");
-        StringJoiner vals = new StringJoiner(", ");
-
-        for (String col : data.keySet()) {
-            cols.add(col);
-            vals.add("?");
-        }
-
-        String sql =
-            "INSERT INTO " + table +
-            " (" + cols + ") VALUES (" + vals + ")";
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            int i = 1;
-            for (Object val : data.values()) {
-                ps.setObject(i++, val);
-            }
-
-            rows = ps.executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return rows;
-    }
 }

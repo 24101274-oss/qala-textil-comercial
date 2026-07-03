@@ -252,48 +252,36 @@ public class registrarCatMatF extends javax.swing.JFrame {
     private void jLabel27MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel27MouseClicked
         String nombreCategoria = userTxt2.getText().trim();
 
-        if (nombreCategoria.isEmpty() || nombreCategoria.equals("Ingrese Nombre de la Categoría")) {
-            JOptionPane.showMessageDialog(this,
-                "Debe ingresar un nombre válido para la categoría",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            userTxt2.requestFocus();
-            return;
-        }
+    if (nombreCategoria.isEmpty() || nombreCategoria.equals("Ingrese Nombre de la Categoría")) {
+        javax.swing.JOptionPane.showMessageDialog(this,
+            "Debe ingresar un nombre válido para la categoría",
+            "Validación",
+            javax.swing.JOptionPane.WARNING_MESSAGE);
+        userTxt2.requestFocus();
+        return;
+    }
 
-        java.util.List<java.util.Map<String, Object>> existente =
-            GenericDAO.select(
-                "Categoria",
-                "NombreCategoria = ?",
-                nombreCategoria
-            );
+    try {
+        
+        SERVICE.CategoriaService servicio = new SERVICE.CategoriaService();
+        servicio.registrarCategoria(nombreCategoria);
 
-        if (!existente.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Ya existe una categoría con ese nombre",
-                "Duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            userTxt2.requestFocus();
-            return;
-        }
+        javax.swing.JOptionPane.showMessageDialog(this,
+            "Categoría registrada correctamente",
+            "Éxito",
+            javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        userTxt2.setText("");
 
-        java.util.LinkedHashMap<String, Object> data = new java.util.LinkedHashMap<>();
-        data.put("NombreCategoria", nombreCategoria);
-
-        int filasAfectadas = GenericDAO.insert("Categoria", data);
-
-        if (filasAfectadas > 0) {
-            JOptionPane.showMessageDialog(this,
-                "Categoría registrada correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-            userTxt2.setText("");
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo registrar la categoría",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
+    } catch (Exception e) {
+        String titulo = e.getMessage().contains("Ya existe") ? "Duplicado" : "Error";
+        int tipoIcono = e.getMessage().contains("Ya existe") ? javax.swing.JOptionPane.WARNING_MESSAGE : javax.swing.JOptionPane.ERROR_MESSAGE;
+        
+        javax.swing.JOptionPane.showMessageDialog(this,
+            e.getMessage(),
+            titulo,
+            tipoIcono);
+        userTxt2.requestFocus();
+    }
     }//GEN-LAST:event_jLabel27MouseClicked
 
     /**

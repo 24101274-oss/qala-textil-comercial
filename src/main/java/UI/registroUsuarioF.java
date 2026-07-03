@@ -608,353 +608,176 @@ public class registroUsuarioF extends javax.swing.JFrame {
 
     private void btnRegUsuarioMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRegUsuarioMouseClicked
         String username = userTxt.getText().trim();
-        String passwordPlano = passTxt.getText().trim();
-        String nombreRol = jComboBox2.getSelectedItem() != null
-                ? jComboBox2.getSelectedItem().toString()
-                : "";
-        String estadoTexto = jComboBox1.getSelectedItem() != null
-                ? jComboBox1.getSelectedItem().toString()
-                : "";
-        if(user.getRolID() != 1 && nombreRol.equals("Administrador")){
-            JOptionPane.showMessageDialog(this,
-                "Solo los administradores pueden crear cuentas de administrador",
-                "Permiso no concedido",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        if (username.isEmpty() || username.equals("Ingrese nombre de Usuario")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre de usuario es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            userTxt.requestFocus();
-            return;
-        }
+    String passwordPlano = passTxt.getText().trim();
+    String nombreRol = jComboBox2.getSelectedItem() != null ? jComboBox2.getSelectedItem().toString() : "";
+    String estadoTexto = jComboBox1.getSelectedItem() != null ? jComboBox1.getSelectedItem().toString() : "";
 
-        if (passwordPlano.isEmpty() || passwordPlano.equals("********")) {
-            JOptionPane.showMessageDialog(this,
-                "La contraseña es obligatoria",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            passTxt.requestFocus();
-            return;
-        }
+    // 1. Validaciones visuales y de permisos
+    if(user.getRolID() != 1 && nombreRol.equals("Administrador")){
+        javax.swing.JOptionPane.showMessageDialog(this, "Solo los administradores pueden crear cuentas de administrador", "Permiso no concedido", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    if (username.isEmpty() || username.equals("Ingrese nombre de Usuario")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre de usuario es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        userTxt.requestFocus(); return;
+    }
+    if (passwordPlano.isEmpty() || passwordPlano.equals("********")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La contraseña es obligatoria", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        passTxt.requestFocus(); return;
+    }
+    if (passwordPlano.length() < 6) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La contraseña debe tener al menos 6 caracteres", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        passTxt.requestFocus(); return;
+    }
+    if (nombreRol.isBlank()) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar un rol", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        jComboBox2.requestFocus(); return;
+    }
+    if (estadoTexto.isBlank()) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar el estado del usuario", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        jComboBox1.requestFocus(); return;
+    }
 
-        if (passwordPlano.length() < 6) {
-            JOptionPane.showMessageDialog(this,
-                "La contraseña debe tener al menos 6 caracteres",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            passTxt.requestFocus();
-            return;
-        }
+    int estado = estadoTexto.equalsIgnoreCase("Activo") ? 1 : 0;
 
-        if (nombreRol.isBlank()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar un rol",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            jComboBox2.requestFocus();
-            return;
-        }
+    try {
+        // 2. Delegar la validación de base de datos, encriptación y guardado al Servicio
+        SERVICE.UsuarioService servicio = new SERVICE.UsuarioService();
+        servicio.registrarUsuario(username, passwordPlano, nombreRol, estado);
 
-        if (estadoTexto.isBlank()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar el estado del usuario",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            jComboBox1.requestFocus();
-            return;
-        }
-
-        int estado = estadoTexto.equalsIgnoreCase("Activo") ? 1 : 0;
-
-        java.util.List<Map<String, Object>> usuarioExistente =
-            GenericDAO.select(
-                "Usuario",
-                "Username = ?",
-                username
-            );
-
-        if (!usuarioExistente.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Ya existe un usuario con ese nombre",
-                "Usuario duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            userTxt.requestFocus();
-            return;
-        }
-
-        java.util.List<Map<String, Object>> rol =
-            GenericDAO.select(
-                "Rol",
-                "NombreRol = ?",
-                nombreRol
-            );
-
-        if (rol.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "El rol seleccionado no existe",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int rolID = Integer.parseInt(rol.get(0).get("RolID").toString());
-
-        String hash = org.mindrot.jbcrypt.BCrypt.hashpw(
-            passwordPlano,
-            org.mindrot.jbcrypt.BCrypt.gensalt()
-        );
-
-        java.util.LinkedHashMap<String, Object> data = new java.util.LinkedHashMap<>();
-        data.put("Username", username);
-        data.put("Password", hash);
-        data.put("RolID", rolID);
-        data.put("Estado", estado);
-
-        int filas = GenericDAO.insert("Usuario", data);
-
-        if (filas > 0) {
-            JOptionPane.showMessageDialog(this,
-                "Usuario registrado correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo registrar el usuario",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
+        // 3. Mostrar éxito y actualizar tabla
+        javax.swing.JOptionPane.showMessageDialog(this, "Usuario registrado correctamente", "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        
+        // Asumiendo que limpiarCampos() existe, si no, bórralo o crea el método
+        // limpiarCampos(); 
+        
         llenarUsuarios("");
+
+    } catch (Exception e) {
+        // Atrapamos errores si el usuario ya existe o hubo un fallo en la BD
+        String titulo = e.getMessage().contains("Ya existe") ? "Usuario duplicado" : "Error";
+        int tipoIcono = titulo.equals("Usuario duplicado") ? javax.swing.JOptionPane.WARNING_MESSAGE : javax.swing.JOptionPane.ERROR_MESSAGE;
+        
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), titulo, tipoIcono);
+        if(titulo.equals("Usuario duplicado")) userTxt.requestFocus();
+    }
     }//GEN-LAST:event_btnRegUsuarioMouseClicked
 
     private void btnActUsuarioMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnActUsuarioMouseClicked
-        if(user.getRolID() != 1){
-            JOptionPane.showMessageDialog(this,
-                "Solo los administradores pueden actualizar",
-                "Permiso no concedido",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int[] filas = tablaEntrada.getSelectedRows();
+        // 1. Validar permisos de administrador
+    if(user.getRolID() != 1){
+        javax.swing.JOptionPane.showMessageDialog(this, "Solo los administradores pueden actualizar", "Permiso no concedido", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // 2. Validar selección en la tabla
+    int[] filas = tablaEntrada.getSelectedRows();
+    if (filas.length == 0) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar un usuario para modificar", "Selección requerida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    if (filas.length > 1) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Seleccione solo un usuario para modificar", "Selección inválida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar un usuario para modificar",
-                "Selección requerida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    int fila = filas[0];
+    Object idObj = tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("UsuarioID"));
+    
+    if (idObj == null) {
+        javax.swing.JOptionPane.showMessageDialog(this, "No se pudo obtener el ID del usuario", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    int usuarioID = Integer.parseInt(idObj.toString());
 
-        if (filas.length > 1) {
-            JOptionPane.showMessageDialog(this,
-                "Seleccione solo un usuario para modificar",
-                "Selección inválida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    // 3. Capturar campos de la vista
+    String username = userTxt.getText().trim();
+    String passwordPlano = passTxt.getText().trim();
+    String nombreRol = jComboBox2.getSelectedItem().toString();
+    String estadoTxt = jComboBox1.getSelectedItem().toString();
 
-        int fila = filas[0];
+    // 4. Validaciones visuales básicas
+    if (username.isEmpty() || username.equals("Ingrese nombre de Usuario")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre de usuario es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        userTxt.requestFocus(); return;
+    }
+    if (nombreRol == null || nombreRol.isBlank()) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar un rol", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        jComboBox2.requestFocus(); return;
+    }
 
-        Object idObj = tablaEntrada.getValueAt(
-            fila,
-            tablaEntrada.getColumnModel().getColumnIndex("UsuarioID")
-        );
+    int estado = estadoTxt.equalsIgnoreCase("Activo") ? 1 : 0;
 
-        if (idObj == null) {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo obtener el ID del usuario",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    try {
+        // 5. Delegamos la lógica al Servicio seguro
+        SERVICE.UsuarioService servicio = new SERVICE.UsuarioService();
+        servicio.actualizarUsuario(usuarioID, username, passwordPlano, nombreRol, estado);
 
-        int usuarioID = Integer.parseInt(idObj.toString());
-
-        String username = userTxt.getText().trim();
-        String passwordPlano = passTxt.getText().trim();
-        String nombreRol = jComboBox2.getSelectedItem().toString();
-        String estadoTxt = jComboBox1.getSelectedItem().toString();
-
-        if (username.isEmpty() || username.equals("Ingrese nombre de Usuario")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre de usuario es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            userTxt.requestFocus();
-            return;
-        }
-
-        if (nombreRol == null || nombreRol.isBlank()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar un rol",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            jComboBox2.requestFocus();
-            return;
-        }
-
-        java.util.List<Map<String, Object>> rolRes =
-            GenericDAO.select(
-                "Rol",
-                "NombreRol = ?",
-                nombreRol
-            );
-
-        if (rolRes.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Rol no válido",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int rolID = Integer.parseInt(rolRes.get(0).get("RolID").toString());
-
-        int estado = estadoTxt.equalsIgnoreCase("Activo") ? 1 : 0;
-
-        java.util.List<Map<String, Object>> duplicado =
-            GenericDAO.select(
-                "Usuario",
-                "Username = ? AND UsuarioID <> ?",
-                username,
-                usuarioID
-            );
-
-        if (!duplicado.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Ya existe otro usuario con ese nombre",
-                "Usuario duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            userTxt.requestFocus();
-            return;
-        }
-
-        java.util.LinkedHashMap<String, Object> data = new java.util.LinkedHashMap<>();
-        data.put("Username", username);
-        data.put("RolID", rolID);
-        data.put("Estado", estado);
-
-        if (!passwordPlano.isEmpty() && !passwordPlano.equals("********")) {
-
-            if (passwordPlano.length() < 6) {
-                JOptionPane.showMessageDialog(this,
-                    "La contraseña debe tener al menos 6 caracteres",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-                passTxt.requestFocus();
-                return;
-            }
-
-            String hash = org.mindrot.jbcrypt.BCrypt.hashpw(
-                passwordPlano,
-                org.mindrot.jbcrypt.BCrypt.gensalt()
-            );
-
-            data.put("Password", hash);
-        }
-
-        int filasAfectadas =
-            GenericDAO.update(
-                "Usuario",
-                data,
-                "UsuarioID = ?",
-                usuarioID
-            );
-
-        if (filasAfectadas > 0) {
-            JOptionPane.showMessageDialog(this,
-                "Usuario actualizado correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo actualizar el usuario",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
-
+        // 6. Mensaje de éxito y recarga
+        javax.swing.JOptionPane.showMessageDialog(this, "Usuario actualizado correctamente", "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
         llenarUsuarios("");
+
+    } catch (Exception e) {
+        // Capturar excepciones arrojadas por la capa de negocio (duplicados, tamaño de contraseña, etc.)
+        String titulo = e.getMessage().contains("Ya existe") || e.getMessage().contains("caracteres") ? "Validación" : "Error";
+        int tipoIcono = titulo.equals("Validación") ? javax.swing.JOptionPane.WARNING_MESSAGE : javax.swing.JOptionPane.ERROR_MESSAGE;
+        
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), titulo, tipoIcono);
+        if (e.getMessage().contains("usuario")) userTxt.requestFocus();
+        if (e.getMessage().contains("contraseña")) passTxt.requestFocus();
+    }
     }//GEN-LAST:event_btnActUsuarioMouseClicked
 
     private void btnEliminarUsuarioMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnEliminarUsuarioMouseClicked
-        if(user.getRolID() != 1){
-            JOptionPane.showMessageDialog(this,
-                "Solo los administradores pueden eliminar",
-                "Permiso no concedido",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int[] filas = tablaEntrada.getSelectedRows();
+        // 1. Validar permisos de administrador
+    if(user.getRolID() != 1){
+        javax.swing.JOptionPane.showMessageDialog(this, "Solo los administradores pueden eliminar", "Permiso no concedido", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // 2. Validar selección
+    int[] filas = tablaEntrada.getSelectedRows();
+    if (filas.length == 0) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar al menos un usuario para eliminar", "Selección requerida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar al menos un usuario para eliminar",
-                "Selección requerida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        for (int fila : filas) {
-
-            Object idObj = tablaEntrada.getValueAt(
-                fila,
-                tablaEntrada.getColumnModel().getColumnIndex("UsuarioID")
-            );
-
-            if (idObj != null) {
-                int usuarioID = Integer.parseInt(idObj.toString());
-
-                if (usuarioID == user.getUsuarioID()) {
-                    JOptionPane.showMessageDialog(this,
-                        "No se puede eliminar el usuario actualmente logueado",
-                        "Operación no permitida",
-                        JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
+    // 3. Recopilar y verificar si intenta auto-eliminarse
+    java.util.List<Integer> idsAEliminar = new java.util.ArrayList<>();
+    for (int fila : filas) {
+        Object idObj = tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("UsuarioID"));
+        if (idObj != null) {
+            int usuarioID = Integer.parseInt(idObj.toString());
+            
+            if (usuarioID == user.getUsuarioID()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "No se puede eliminar el usuario actualmente logueado", "Operación no permitida", javax.swing.JOptionPane.WARNING_MESSAGE);
+                return;
             }
+            idsAEliminar.add(usuarioID);
         }
+    }
 
-        int confirmacion = JOptionPane.showConfirmDialog(
-            this,
-            "¿Está seguro de eliminar el(los) usuario(s) seleccionado(s)?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
+    // 4. Confirmación visual
+    int confirmacion = javax.swing.JOptionPane.showConfirmDialog(this, "¿Está seguro de eliminar el(los) usuario(s) seleccionado(s)?", "Confirmar eliminación", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
+    if (confirmacion != javax.swing.JOptionPane.YES_OPTION) {
+        return;
+    }
 
-        if (confirmacion != JOptionPane.YES_OPTION) {
-            return;
-        }
+    try {
+        // 5. Delegamos el procesamiento de borrado en lote al Servicio seguro
+        SERVICE.UsuarioService servicio = new SERVICE.UsuarioService();
+        int eliminados = servicio.eliminarUsuarios(idsAEliminar);
 
-        int eliminados = 0;
-
-        for (int fila : filas) {
-
-            Object idObj = tablaEntrada.getValueAt(
-                fila,
-                tablaEntrada.getColumnModel().getColumnIndex("UsuarioID")
-            );
-
-            if (idObj != null) {
-                int usuarioID = Integer.parseInt(idObj.toString());
-                eliminados += GenericDAO.delete(
-                    "Usuario",
-                    "UsuarioID = ?",
-                    usuarioID
-                );
-            }
-        }
-
-        JOptionPane.showMessageDialog(this,
-            eliminados + " usuario(s) eliminado(s)",
-            "Resultado",
-            JOptionPane.INFORMATION_MESSAGE);
-
+        // 6. Éxito y actualización visual
+        javax.swing.JOptionPane.showMessageDialog(this, eliminados + " usuario(s) eliminado(s)", "Resultado", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
         llenarUsuarios("");
+
+    } catch (Exception e) {
+        // Capturamos si la base de datos restringe la acción por llaves foráneas integradas
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btnEliminarUsuarioMouseClicked
 
     private void btnCancelarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCancelarMouseClicked
@@ -1024,59 +847,49 @@ public class registroUsuarioF extends javax.swing.JFrame {
     }
     
     private void llenarUsuarios(String where) {
-        java.util.List<Map<String, Object>> usuarios =
-            GenericDAO.selectQuery(
-                "select UsuarioID, Username, RolID, Estado from Usuario where Username like ?",
-                "%" + where + "%"
-            );
-        GenericDAO.llenarJTable(tablaEntrada, usuarios);
+        try {
+        // 1. Delegamos la búsqueda de usuarios al Servicio
+        SERVICE.UsuarioService servicio = new SERVICE.UsuarioService();
+        java.util.List<java.util.Map<String, Object>> usuarios = servicio.buscarUsuariosPorNombre(where);
+        
+        // 2. Llenamos la tabla visual
+        DAO.GenericDAO.llenarJTable(tablaEntrada, usuarios);
+        
+        } catch (Exception e) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Error al cargar la lista de usuarios: " + e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private void configurarSeleccionTabla() {
-
-        tablaEntrada.getSelectionModel().addListSelectionListener(e -> {
-
+    tablaEntrada.getSelectionModel().addListSelectionListener(e -> {
             if (e.getValueIsAdjusting()) {
                 return;
             }
 
             int[] filasSeleccionadas = tablaEntrada.getSelectedRows();
-
             if (filasSeleccionadas.length == 0) {
                 return;
             }
 
             int fila = filasSeleccionadas[filasSeleccionadas.length - 1];
 
-            userTxt.setText(
-                tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel()
-                    .getColumnIndex("Username")).toString()
-            );
-            userTxt.setForeground(Color.black);
-            
-            String permID = String.valueOf(
-                tablaEntrada.getValueAt(
-                    fila,
-                    tablaEntrada.getColumnModel()
-                        .getColumnIndex("RolID")
-                )
-            );
-            
-            java.util.List<Map<String, Object>> perms =
-            GenericDAO.select(
-                "Rol",
-                "RolID = ?",
-                permID
-            );
-            jComboBox2.setSelectedItem(perms.get(0).get("NombreRol"));
-            
-            String estado = String.valueOf(
-                tablaEntrada.getValueAt(
-                    fila,
-                    tablaEntrada.getColumnModel()
-                        .getColumnIndex("Estado")
-                )).equals("1") ?
-                    "Activo" : "No Activo";
+            // Rellenar Usuario
+            userTxt.setText(tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("Username")).toString());
+            userTxt.setForeground(java.awt.Color.black);
+
+            // Rellenar Rol usando el Servicio
+            String permIDStr = String.valueOf(tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("RolID")));
+            try {
+                SERVICE.UsuarioService servicio = new SERVICE.UsuarioService();
+                String nombreRol = servicio.obtenerNombreRol(Integer.parseInt(permIDStr));
+                jComboBox2.setSelectedItem(nombreRol);
+            } catch (Exception ex) {
+                System.out.println("Error al obtener el nombre del rol: " + ex.getMessage());
+            }
+
+            // Rellenar Estado
+            String estadoValor = String.valueOf(tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("Estado")));
+            String estado = estadoValor.equals("1") ? "Activo" : "No Activo";
             jComboBox1.setSelectedItem(estado);
         });
     }

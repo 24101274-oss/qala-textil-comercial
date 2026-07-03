@@ -354,14 +354,21 @@ public class buscarMaterialF extends javax.swing.JFrame {
     }
     
     private void llenarMateriales(String where) {
-        java.util.List<Map<String, Object>> materiales =
-            GenericDAO.select(
-                "Material",
-                "Nombre LIKE ?",
-                "%" + where + "%"
-            );
-        GenericDAO.llenarJTable(tablaEntrada, materiales);
+    try {
+        // 1. Instanciamos la Fachada de Materiales
+        SERVICE.MaterialService servicio = new SERVICE.MaterialService();
+        
+        // 2. Pedimos la lista de materiales pasándole el texto de búsqueda
+        java.util.List<Map<String, Object>> materiales = servicio.buscarMaterialesPorNombre(where);
+        
+        // 3. Enviamos la lista limpia y segura para que llene la tabla visual
+        DAO.GenericDAO.llenarJTable(tablaEntrada, materiales);
+        
+    } catch (Exception e) {
+        // Si la base de datos falla, la interfaz gráfica no se congela, solo avisa
+        javax.swing.JOptionPane.showMessageDialog(this, "Error al cargar los materiales: " + e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
     }
+}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel iconem;

@@ -682,126 +682,49 @@ public class registrarMaterialF extends javax.swing.JFrame {
 
     private void btnRegistrarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRegistrarMouseClicked
         String codigoBarra = txtCodMaterial.getText().trim();
-        String nombre      = txtnombMaterial.getText().trim();
-        String descripcion = txtDescMaterial.getText().trim();
-        String precioStr   = txtPrecioMaterial.getText().trim();
+    String nombre      = txtnombMaterial.getText().trim();
+    String descripcion = txtDescMaterial.getText().trim();
+    String precioStr   = txtPrecioMaterial.getText().trim();
 
-        String unidad      = (String) cmbUndMaterial.getSelectedItem();
-        String categoria   = (String) cmbCatMaterial.getSelectedItem();
+    String unidad      = (String) cmbUndMaterial.getSelectedItem();
+    String categoria   = (String) cmbCatMaterial.getSelectedItem();
 
-        if (codigoBarra.isEmpty() || codigoBarra.equals("Código de Barra")) {
-            JOptionPane.showMessageDialog(this,
-                "El código de barra es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtCodMaterial.requestFocus();
-            return;
-        }
+    if (codigoBarra.isEmpty() || codigoBarra.equals("Código de Barra")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El código de barra es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtCodMaterial.requestFocus(); return;
+    }
+    if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Material")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre del material es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnombMaterial.requestFocus(); return;
+    }
+    if (descripcion.isEmpty() || descripcion.equals("Ingrese Descripción del Material")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La descripción del material es obligatoria", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtDescMaterial.requestFocus(); return;
+    }
+    if (precioStr.isEmpty() || precioStr.equals("Ingrese Precio por Unidad")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El precio por unidad es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtPrecioMaterial.requestFocus(); return;
+    }
 
-        if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Material")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre del material es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnombMaterial.requestFocus();
-            return;
-        }
+    double precio;
+    try {
+        precio = Double.parseDouble(precioStr);
+        if (precio <= 0) throw new NumberFormatException();
+    } catch (NumberFormatException ex) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El precio debe ser un número válido mayor a cero", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtPrecioMaterial.requestFocus(); return;
+    }
 
-        if (descripcion.isEmpty() || descripcion.equals("Ingrese Descripción del Material")) {
-            JOptionPane.showMessageDialog(this,
-                "La descripción del material es obligatoria",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtDescMaterial.requestFocus();
-            return;
-        }
+    if (unidad == null || unidad.trim().isEmpty() || categoria == null || categoria.trim().isEmpty()) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar una unidad y una categoría", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (precioStr.isEmpty() || precioStr.equals("Ingrese Precio por Unidad")) {
-            JOptionPane.showMessageDialog(this,
-                "El precio por unidad es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtPrecioMaterial.requestFocus();
-            return;
-        }
+    try {
+        SERVICE.MaterialService servicio = new SERVICE.MaterialService();
+        servicio.registrarMaterial(codigoBarra, nombre, descripcion, unidad, precio, categoria);
 
-        double precio;
-        try {
-            precio = Double.parseDouble(precioStr);
-            if (precio <= 0) {
-                throw new NumberFormatException();
-            }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this,
-                "El precio debe ser un número válido mayor a cero",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtPrecioMaterial.requestFocus();
-            return;
-        }
-
-        if (unidad == null || unidad.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar una unidad de medida",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (categoria == null || categoria.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar una categoría",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        java.util.List<Map<String, Object>> existentes =
-            GenericDAO.select("Material", "CodigoBarra = ?", codigoBarra);
-
-        if (!existentes.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Ya existe un material con ese código de barra",
-                "Duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        java.util.List<Map<String, Object>> cat =
-            GenericDAO.select("Categoria", "NombreCategoria = ?", categoria);
-
-        if (cat.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "La categoría seleccionada no es válida",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int categoriaID = ((Number) cat.get(0).get("CategoriaID")).intValue();
-
-        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("CodigoBarra", codigoBarra);
-        data.put("Nombre", nombre);
-        data.put("Descripcion", descripcion);
-        data.put("UnidadMedida", unidad);
-        data.put("Precio", precio);
-        data.put("CategoriaID", categoriaID);
-
-        int filas = GenericDAO.insert("Material", data);
-
-        if (filas > 0) {
-            JOptionPane.showMessageDialog(this,
-                "Material registrado correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo registrar el material",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
-
+        javax.swing.JOptionPane.showMessageDialog(this, "Material registrado correctamente", "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
 
         if (txtBusqMaterial.getText().equals("Ingrese nombre del Material")) {
@@ -809,178 +732,87 @@ public class registrarMaterialF extends javax.swing.JFrame {
         } else {
             llenarMateriales(txtBusqMaterial.getText());
         }
+
+    } catch (Exception e) {
+        String titulo = e.getMessage().contains("Ya existe") ? "Duplicado" : "Error";
+        int tipoIcono = e.getMessage().contains("Ya existe") ? javax.swing.JOptionPane.WARNING_MESSAGE : javax.swing.JOptionPane.ERROR_MESSAGE;
+        
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), titulo, tipoIcono);
+    }
     }//GEN-LAST:event_btnRegistrarMouseClicked
 
     private void btnActualizarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnActualizarMouseClicked
-        if(user.getRolID() != 1){
-            JOptionPane.showMessageDialog(this,
-                "Solo los administradores pueden actualizar",
-                "Permiso no concedido",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int[] filas = tablaEntrada.getSelectedRows();
+    if(user.getRolID() != 1){
+        javax.swing.JOptionPane.showMessageDialog(this, "Solo los administradores pueden actualizar", "Permiso no concedido", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    
+    int[] filas = tablaEntrada.getSelectedRows();
+    if (filas.length == 0) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar un material para modificar", "Selección requerida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    if (filas.length > 1) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Seleccione solo un material para modificar", "Selección inválida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar un material para modificar",
-                "Selección requerida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    int fila = filas[0];
+    Object idObj = tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("MaterialID"));
+    
+    if (idObj == null) {
+        javax.swing.JOptionPane.showMessageDialog(this, "No se pudo obtener el ID del material", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    int materialID = Integer.parseInt(idObj.toString());
 
-        if (filas.length > 1) {
-            JOptionPane.showMessageDialog(this,
-                "Seleccione solo un material para modificar",
-                "Selección inválida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    String codigoBarra = txtCodMaterial.getText().trim();
+    String nombre      = txtnombMaterial.getText().trim();
+    String descripcion = txtDescMaterial.getText().trim();
+    String precioStr   = txtPrecioMaterial.getText().trim();
+    String unidad    = (String) cmbUndMaterial.getSelectedItem();
+    String categoria = (String) cmbCatMaterial.getSelectedItem();
 
-        int fila = filas[0];
+    
+    if (codigoBarra.isEmpty() || codigoBarra.equals("Código de Barra")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El código de barra es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtCodMaterial.requestFocus(); return;
+    }
+    if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Material")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El nombre del material es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtnombMaterial.requestFocus(); return;
+    }
+    if (descripcion.isEmpty() || descripcion.equals("Ingrese Descripción del Material")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "La descripción del material es obligatoria", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtDescMaterial.requestFocus(); return;
+    }
+    if (precioStr.isEmpty() || precioStr.equals("Ingrese Precio por Unidad")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El precio por unidad es obligatorio", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtPrecioMaterial.requestFocus(); return;
+    }
 
-        Object idObj = tablaEntrada.getValueAt(
-            fila,
-            tablaEntrada.getColumnModel().getColumnIndex("MaterialID")
-        );
+    double precio;
+    try {
+        precio = Double.parseDouble(precioStr);
+        if (precio <= 0) throw new NumberFormatException();
+    } catch (NumberFormatException ex) {
+        javax.swing.JOptionPane.showMessageDialog(this, "El precio debe ser un número válido mayor a cero", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        txtPrecioMaterial.requestFocus(); return;
+    }
 
-        if (idObj == null) {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo obtener el ID del material",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    if (unidad == null || unidad.trim().isEmpty() || categoria == null || categoria.trim().isEmpty()) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar una unidad y una categoría", "Validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        int materialID = Integer.parseInt(idObj.toString());
+   
+    try {
+        SERVICE.MaterialService servicio = new SERVICE.MaterialService();
+        servicio.actualizarMaterial(materialID, codigoBarra, nombre, descripcion, unidad, precio, categoria);
 
-        String codigoBarra = txtCodMaterial.getText().trim();
-        String nombre      = txtnombMaterial.getText().trim();
-        String descripcion = txtDescMaterial.getText().trim();
-        String precioStr   = txtPrecioMaterial.getText().trim();
-
-        String unidad    = (String) cmbUndMaterial.getSelectedItem();
-        String categoria = (String) cmbCatMaterial.getSelectedItem();
-
-        if (codigoBarra.isEmpty() || codigoBarra.equals("Código de Barra")) {
-            JOptionPane.showMessageDialog(this,
-                "El código de barra es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtCodMaterial.requestFocus();
-            return;
-        }
-
-        if (nombre.isEmpty() || nombre.equals("Ingrese nombre del Material")) {
-            JOptionPane.showMessageDialog(this,
-                "El nombre del material es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtnombMaterial.requestFocus();
-            return;
-        }
-
-        if (descripcion.isEmpty() || descripcion.equals("Ingrese Descripción del Material")) {
-            JOptionPane.showMessageDialog(this,
-                "La descripción del material es obligatoria",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtDescMaterial.requestFocus();
-            return;
-        }
-
-        if (precioStr.isEmpty() || precioStr.equals("Ingrese Precio por Unidad")) {
-            JOptionPane.showMessageDialog(this,
-                "El precio por unidad es obligatorio",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtPrecioMaterial.requestFocus();
-            return;
-        }
-
-        double precio;
-        try {
-            precio = Double.parseDouble(precioStr);
-            if (precio <= 0) {
-                throw new NumberFormatException();
-            }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this,
-                "El precio debe ser un número válido mayor a cero",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            txtPrecioMaterial.requestFocus();
-            return;
-        }
-
-        if (unidad == null || unidad.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar una unidad de medida",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (categoria == null || categoria.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar una categoría",
-                "Validación",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        java.util.List<Map<String, Object>> existentes =
-            GenericDAO.select(
-                "Material",
-                "CodigoBarra = ? AND MaterialID <> ?",
-                codigoBarra,
-                materialID
-            );
-
-        if (!existentes.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Ya existe otro material con ese código de barra",
-                "Duplicado",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        java.util.List<Map<String, Object>> cat =
-            GenericDAO.select("Categoria", "NombreCategoria = ?", categoria);
-
-        if (cat.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "La categoría seleccionada no es válida",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int categoriaID = ((Number) cat.get(0).get("CategoriaID")).intValue();
-
-        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("CodigoBarra", codigoBarra);
-        data.put("Nombre", nombre);
-        data.put("Descripcion", descripcion);
-        data.put("UnidadMedida", unidad);
-        data.put("Precio", precio);
-        data.put("CategoriaID", categoriaID);
-
-        int filasAfectadas =
-            GenericDAO.update("Material", data, "MaterialID = ?", materialID);
-
-        if (filasAfectadas > 0) {
-            JOptionPane.showMessageDialog(this,
-                "Material actualizado correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "No se pudo actualizar el material",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
-
+        
+        javax.swing.JOptionPane.showMessageDialog(this, "Material actualizado correctamente", "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
 
         if (txtBusqMaterial.getText().equals("Ingrese nombre del Material")) {
@@ -988,62 +820,48 @@ public class registrarMaterialF extends javax.swing.JFrame {
         } else {
             llenarMateriales(txtBusqMaterial.getText());
         }
+        
+    } catch (Exception e) {
+        String titulo = e.getMessage().contains("Ya existe") ? "Duplicado" : "Error";
+        int tipoIcono = e.getMessage().contains("Ya existe") ? javax.swing.JOptionPane.WARNING_MESSAGE : javax.swing.JOptionPane.ERROR_MESSAGE;
+        
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), titulo, tipoIcono);
+    }
     }//GEN-LAST:event_btnActualizarMouseClicked
 
     private void btnEliminarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnEliminarMouseClicked
-        if(user.getRolID() != 1){
-            JOptionPane.showMessageDialog(this,
-                "Solo los administradores pueden eliminar",
-                "Permiso no concedido",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int[] filas = tablaEntrada.getSelectedRows();
+  
+    if(user.getRolID() != 1){
+        javax.swing.JOptionPane.showMessageDialog(this, "Solo los administradores pueden eliminar", "Permiso no concedido", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    int[] filas = tablaEntrada.getSelectedRows();
+    if (filas.length == 0) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Debe seleccionar al menos un material para eliminar", "Selección requerida", javax.swing.JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (filas.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                "Debe seleccionar al menos un material para eliminar",
-                "Selección requerida",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    int confirmacion = javax.swing.JOptionPane.showConfirmDialog(this, "¿Está seguro de eliminar el(los) material(es) seleccionado(s)?", "Confirmar eliminación", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
+    
+    if (confirmacion != javax.swing.JOptionPane.YES_OPTION) {
+        return;
+    }
 
-        int confirmacion = JOptionPane.showConfirmDialog(
-            this,
-            "¿Está seguro de eliminar el(los) material(es) seleccionado(s)?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
-
-        if (confirmacion != JOptionPane.YES_OPTION) {
-            return;
-        }
-
-        int eliminados = 0;
-
+    try {
+        java.util.List<Integer> idsAEliminar = new java.util.ArrayList<>();
         for (int fila : filas) {
-
-            Object idObj = tablaEntrada.getValueAt(
-                fila,
-                tablaEntrada.getColumnModel().getColumnIndex("MaterialID")
-            );
-
+            Object idObj = tablaEntrada.getValueAt(fila, tablaEntrada.getColumnModel().getColumnIndex("MaterialID"));
             if (idObj != null) {
-                int materialID = Integer.parseInt(idObj.toString());
-                eliminados += GenericDAO.delete(
-                    "Material",
-                    "MaterialID = ?",
-                    materialID
-                );
+                idsAEliminar.add(Integer.parseInt(idObj.toString()));
             }
         }
 
-        JOptionPane.showMessageDialog(this,
-            eliminados + " material(es) eliminado(s)",
-            "Resultado",
-            JOptionPane.INFORMATION_MESSAGE);
+        SERVICE.MaterialService servicio = new SERVICE.MaterialService();
+        int eliminados = servicio.eliminarMateriales(idsAEliminar);
 
+
+        javax.swing.JOptionPane.showMessageDialog(this, eliminados + " material(es) eliminado(s)", "Resultado", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         limpiarCampos();
 
         if (txtBusqMaterial.getText().equals("Ingrese nombre del Material")) {
@@ -1051,6 +869,10 @@ public class registrarMaterialF extends javax.swing.JFrame {
         } else {
             llenarMateriales(txtBusqMaterial.getText());
         }
+
+    } catch (Exception e) {
+        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btnEliminarMouseClicked
 
     private void btnCancelarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCancelarMouseClicked
@@ -1124,29 +946,16 @@ public class registrarMaterialF extends javax.swing.JFrame {
     }
     
     private void llenarMateriales(String where) {
-
-        String sql = """
-            SELECT
-                m.MaterialID,
-                m.CodigoBarra,
-                m.Nombre,
-                m.Descripcion,
-                m.UnidadMedida,
-                m.StockActual,
-                m.Precio,
-                c.NombreCategoria
-            FROM Material m
-            INNER JOIN Categoria c
-                ON m.CategoriaID = c.CategoriaID
-            WHERE m.Nombre LIKE ?
-            ORDER BY 1
-        """;
-
-        java.util.List<Map<String, Object>> materiales =
-            GenericDAO.selectQuery(sql, "%" + where + "%");
-
-        GenericDAO.llenarJTable(tablaEntrada, materiales);
+    try {
+        SERVICE.MaterialService servicio = new SERVICE.MaterialService();
+        java.util.List<Map<String, Object>> materiales = servicio.buscarMaterialesConCategoria(where);
+        
+        DAO.GenericDAO.llenarJTable(tablaEntrada, materiales);
+        
+    } catch (Exception e) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Error al cargar materiales: " + e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
     }
+}
 
     private void configurarSeleccionTabla() {
 
@@ -1247,14 +1056,16 @@ public class registrarMaterialF extends javax.swing.JFrame {
     }
     
     private void llenarCmbCategoria() {
-        java.util.List<Map<String, Object>> categorias =
-            GenericDAO.select(
-                "Categoria",
-                "1 = ?",
-                1
-            );
-        GenericDAO.llenarComboDesdeTabla(cmbCatMaterial, categorias, "NombreCategoria");
+    try {
+        SERVICE.CategoriaService servicio = new SERVICE.CategoriaService();
+        java.util.List<Map<String, Object>> categorias = servicio.obtenerTodasCategorias();
+        
+        DAO.GenericDAO.llenarComboDesdeTabla(cmbCatMaterial, categorias, "NombreCategoria");
+        
+    } catch (Exception e) {
+        System.out.println("Error al cargar categorías: " + e.getMessage());
     }
+}
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel actualizar;

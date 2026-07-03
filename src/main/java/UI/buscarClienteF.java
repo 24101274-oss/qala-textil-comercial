@@ -325,14 +325,21 @@ public class buscarClienteF extends javax.swing.JFrame {
     }
     
     private void llenarClientes(String where) {
-        java.util.List<Map<String, Object>> proveedores =
-            GenericDAO.select(
-                "Cliente",
-                "Nombre LIKE ?",
-                "%" + where + "%"
-            );
-        GenericDAO.llenarJTable(tablaEntrada, proveedores);
+    try {
+        // 1. Llamamos a la Fachada (Servicio)
+        SERVICE.ClienteService servicio = new SERVICE.ClienteService();
+        
+        // 2. Obtenemos la lista segura
+        java.util.List<Map<String, Object>> listaClientes = servicio.buscarClientesPorNombre(where);
+        
+        // 3. Llenamos la tabla
+        DAO.GenericDAO.llenarJTable(tablaEntrada, listaClientes);
+        
+    } catch (Exception e) {
+        // Si hay error en la base de datos, lo mostramos sin que se caiga el programa
+        javax.swing.JOptionPane.showMessageDialog(this, "Error al cargar clientes: " + e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
     }
+}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel iconem;

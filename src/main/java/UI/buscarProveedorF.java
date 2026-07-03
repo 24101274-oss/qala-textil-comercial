@@ -339,13 +339,20 @@ public class buscarProveedorF extends javax.swing.JFrame {
     }
     
     private void llenarProveedores(String where) {
-        java.util.List<Map<String, Object>> proveedores =
-            GenericDAO.select(
-                "Proveedor",
-                "Nombre LIKE ?",
-                "%" + where + "%"
-            );
-        GenericDAO.llenarJTable(tablaEntrada, proveedores);
+    try {
+        // 1. Llamamos a la Fachada (Servicio)
+        SERVICE.ProveedorService servicio = new SERVICE.ProveedorService();
+        
+        // 2. Obtenemos la lista segura
+        java.util.List<Map<String, Object>> proveedores = servicio.buscarProveedoresPorNombre(where);
+        
+        // 3. Llenamos la tabla
+        DAO.GenericDAO.llenarJTable(tablaEntrada, proveedores);
+        
+    } catch (Exception e) {
+        // Si hay error en la base de datos, lo mostramos sin que se caiga el programa
+        javax.swing.JOptionPane.showMessageDialog(this, "Error al cargar proveedores: " + e.getMessage(), "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+      }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

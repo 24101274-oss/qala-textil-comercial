@@ -30,10 +30,7 @@ public class loginF extends javax.swing.JFrame {
         SetImageLabel(bg, "icons/bo.png");
         SetImageLabel(tt, "icons/tt.png");
         user = new Usuario();
-        userDAO = new usuarioDAO();       
-       
-
-        
+         
     }
 
     /**
@@ -400,75 +397,43 @@ public class loginF extends javax.swing.JFrame {
     }
 
     private void doit() {
-
         String usr = this.userTxt.getText().trim();
         String pw  = String.valueOf(passTxt.getPassword());
 
+        // 1. Validación puramente visual
         if (!validarLoginInput(usr, pw)) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Credenciales inválidas",
-                "Login",
-                JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-        
-        if(GenericDAO.select(
-                "Usuario",
-                "Username = ?",
-                usr
-            ).isEmpty()){
-            JOptionPane.showMessageDialog(
-                this,
-                "Usuario inexistente",
-                "Login",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-            return;
-        }
-        
-        boolean sw = consultarLogin(usr, pw);
-
-        if (!sw) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Contraseña incorrecta",
-                "Login",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-            this.passTxt.setText("");
-            this.userTxt.requestFocus();
+            javax.swing.JOptionPane.showMessageDialog(this, "Credenciales inválidas", "Login", javax.swing.JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // login exitoso
-        this.dispose();
-
-        Vector<Usuario> userVal = userDAO.consultarPorUsername(usr);
-
-        if (userVal.size() == 1) {
+        try {
+            // 2. Delegamos TODO el trabajo al Servicio
+            SERVICE.LoginService servicio = new SERVICE.LoginService();
+            Usuario usuarioLogueado = servicio.autenticar(usr, pw);
+            
+            // 3. Si el código llega hasta aquí, el login fue exitoso. Abrimos Dashboard.
             dashboard principal = new dashboard();
-            user.setUsuarioID(userVal.get(0).getUsuarioID());
-            user.setUsername(userVal.get(0).getUsername());
-            user.setEstado(userVal.get(0).getEstado());
-            user.setRolID(userVal.get(0).getRolID());
+            
+            user.setUsuarioID(usuarioLogueado.getUsuarioID());
+            user.setUsername(usuarioLogueado.getUsername());
+            user.setEstado(usuarioLogueado.getEstado());
+            user.setRolID(usuarioLogueado.getRolID());
+            
             principal.setUsuario(user);
             principal.setVisible(true);
-        } else {
-            JOptionPane.showMessageDialog(
-                this,
-                "Existe usuarios duplicados. Contacte al administrador.",
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-            );
+            this.dispose(); // Cerramos la ventana de Login
+            
+        } catch (Exception e) {
+            // 4. Si hay error, el servicio nos dirá exactamente cuál es
+            javax.swing.JOptionPane.showMessageDialog(this, e.getMessage(), "Login", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            
+            if (e.getMessage().equals("Contraseña incorrecta")) {
+                this.passTxt.setText("");
+                this.passTxt.requestFocus();
+            } else {
+                this.userTxt.requestFocus();
+            }
         }
-    }
-
-    public boolean consultarLogin(String usr, String pw){
-        boolean ret = false;
-        ret = loginDAO.consultaLogin(usr, pw);
-        return ret;
     }
     
     private boolean validarLoginInput(String usr, String pw) {

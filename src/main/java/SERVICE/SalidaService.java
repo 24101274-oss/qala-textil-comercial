@@ -125,4 +125,18 @@ public class SalidaService {
             }
         }
     }
+    
+    public List<Map<String, Object>> obtenerTiposDeSalida() throws Exception {
+        dbBean DB = new dbBean();
+        Connection conn = null;
+        
+        try {
+            conn = DB.getConnection();
+            return GenericDAO.select(conn, "TipoSalida", "1 = ?", 1);
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
 }
